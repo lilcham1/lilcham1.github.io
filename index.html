@@ -3,9 +3,9 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>lilcham | Vibe coder & Discord community manager</title>
+<title>lilcham (lilxcham) | Vibe coder & Discord community manager</title>
 <script>try { var th = localStorage.getItem('lilcham-theme'); if (th) document.documentElement.setAttribute('data-theme', th); } catch (e) {}</script>
-<meta name="description" content="lilcham is a vibe coder managing Discord servers for YouTubers since 2018. Projects: TheTracker, YouTube Music Desktop and the KneeGuard anti-scam bot.">
+<meta name="description" content="lilcham (lilxcham) is a vibe coder managing Discord servers for YouTubers since 2018. Projects: TheTracker, YouTube Music Desktop and KneeGuard.">
 <link rel="canonical" href="https://lilcham1.github.io/">
 <meta name="robots" content="index, follow, max-image-preview:large">
 <meta name="author" content="lilcham">
@@ -15,8 +15,8 @@
 <meta property="og:type" content="profile">
 <meta property="og:site_name" content="lilcham">
 <meta property="og:url" content="https://lilcham1.github.io/">
-<meta property="og:title" content="lilcham | Vibe coder & Discord community manager">
-<meta property="og:description" content="lilcham is a vibe coder managing Discord servers for YouTubers since 2018. Projects: TheTracker, YouTube Music Desktop and the KneeGuard anti-scam bot.">
+<meta property="og:title" content="lilcham (lilxcham) | Vibe coder & Discord community manager">
+<meta property="og:description" content="lilcham (lilxcham) is a vibe coder managing Discord servers for YouTubers since 2018. Projects: TheTracker, YouTube Music Desktop and KneeGuard.">
 <meta property="og:image" content="https://lilcham1.github.io/og-image.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
@@ -24,10 +24,11 @@
 <meta property="profile:username" content="lilcham">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:site" content="@lilxcham">
-<meta name="twitter:title" content="lilcham | Vibe coder & Discord community manager">
-<meta name="twitter:description" content="lilcham is a vibe coder managing Discord servers for YouTubers since 2018. Projects: TheTracker, YouTube Music Desktop and the KneeGuard anti-scam bot.">
+<meta name="twitter:creator" content="@lilxcham">
+<meta name="twitter:title" content="lilcham (lilxcham) | Vibe coder & Discord community manager">
+<meta name="twitter:description" content="lilcham (lilxcham) is a vibe coder managing Discord servers for YouTubers since 2018. Projects: TheTracker, YouTube Music Desktop and KneeGuard.">
 <meta name="twitter:image" content="https://lilcham1.github.io/og-image.png">
-<script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"Person","@id":"https://lilcham1.github.io/#me","name":"lilcham","url":"https://lilcham1.github.io/","image":"https://lilcham1.github.io/og-image.png","jobTitle":"Discord community manager","description":"Vibe coder who has managed Discord servers for YouTubers since 2018.","knowsAbout":["Discord community management","Discord bots","Video editing","Customer support"],"sameAs":["https://github.com/lilcham1","https://www.youtube.com/@lilxcham","https://www.twitch.tv/lilchamoun","https://x.com/lilxcham"]},{"@type":"WebSite","@id":"https://lilcham1.github.io/#site","url":"https://lilcham1.github.io/","name":"lilcham","publisher":{"@id":"https://lilcham1.github.io/#me"}},{"@type":"ProfilePage","url":"https://lilcham1.github.io/","name":"lilcham | Vibe coder & Discord community manager","mainEntity":{"@id":"https://lilcham1.github.io/#me"},"dateModified":"2026-10-02"}]}</script>
+<script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"Person","@id":"https://lilcham1.github.io/#me","name":"lilcham","alternateName":["lilxcham","lilcham1"],"url":"https://lilcham1.github.io/","image":"https://lilcham1.github.io/og-image.png","jobTitle":"Discord community manager","description":"Vibe coder who has managed Discord servers for YouTubers since 2018.","knowsAbout":["Discord community management","Discord bots","Video editing","Customer support"],"sameAs":["https://github.com/lilcham1","https://www.youtube.com/@lilxcham","https://www.twitch.tv/lilchamoun","https://x.com/lilxcham"]},{"@type":"WebSite","@id":"https://lilcham1.github.io/#site","url":"https://lilcham1.github.io/","name":"lilcham","publisher":{"@id":"https://lilcham1.github.io/#me"}},{"@type":"ProfilePage","url":"https://lilcham1.github.io/","name":"lilcham (lilxcham) | Vibe coder & Discord community manager","mainEntity":{"@id":"https://lilcham1.github.io/#me"},"dateModified":"2026-10-02"}]}</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oxanium:wght@600;700;800&family=Atkinson+Hyperlegible:wght@400;700&family=IBM+Plex+Mono:wght@500;600&display=swap">
@@ -259,36 +260,26 @@ a.sec-meta:hover { color: var(--fg); }
 .lk.primary { background: var(--violet); border-color: var(--violet); color: var(--on-accent); }
 .lk.primary:hover { background: var(--fg); border-color: var(--fg); color: var(--on-accent); }
 
-/* Hobbies: anime-poster tiles with manga speed lines */
-.hobbies { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: .8rem; list-style: none; margin: 0; padding: 0; }
-@media (max-width: 860px) { .hobbies { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-.hobby {
-  position: relative; isolation: isolate; overflow: hidden; min-height: 10.5rem; border-radius: 14px;
-  display: flex; flex-direction: column; justify-content: flex-end;
-  background: linear-gradient(160deg, var(--h1), var(--h2)); border: 1px solid rgba(255, 255, 255, .14);
-  box-shadow: 0 14px 30px -18px rgba(0, 0, 0, .7);
+/* Hobbies: a character-profile sheet, two columns of label / favourite rows */
+.sheet {
+  margin: 0; padding: .3rem 1.2rem; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 2rem;
+  background: var(--surface); border: 1px solid var(--line); border-radius: 14px;
+  backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
 }
-.hobby::before { /* speed lines radiating from the icon */
-  content: ""; position: absolute; inset: 0; z-index: -1;
-  background: repeating-conic-gradient(from 0deg at 50% 36%, rgba(255, 255, 255, .13) 0deg 2.5deg, transparent 2.5deg 11deg);
-  -webkit-mask: radial-gradient(circle at 50% 36%, transparent 14%, #000 42%, transparent 78%);
-          mask: radial-gradient(circle at 50% 36%, transparent 14%, #000 42%, transparent 78%);
+.sheet-row { display: flex; align-items: center; gap: .75rem; min-width: 0; padding: .7rem 0; border-bottom: 1px dashed var(--line); }
+.sheet-row:nth-last-child(-n+2) { border-bottom: 0; } /* bottom row of both columns */
+.sheet dt {
+  flex: none; width: 7.25rem; display: flex; align-items: center; gap: .65rem;
+  font: 600 .7rem var(--f-mono); letter-spacing: .12em; text-transform: uppercase; color: var(--muted);
 }
-.hobby-art {
-  position: absolute; left: 50%; top: 36%; width: 3.3rem; height: 3.3rem; translate: -50% -50%;
-  color: #fff; filter: drop-shadow(0 6px 14px rgba(0, 0, 0, .35)); transition: scale .3s ease;
-}
-.hobby-art svg { width: 100%; height: 100%; }
-.hobby:hover .hobby-art { scale: 1.08; }
-.hobby-cap { position: relative; padding: 1.6rem .9rem .75rem; color: #fff; background: linear-gradient(transparent, rgba(8, 6, 20, .86) 45%); }
-.hobby-cap h3 { font-size: 1.05rem; font-weight: 700; }
-.hobby-cap p { display: grid; }
-.hobby-cap p span { font: 600 .64rem var(--f-mono); letter-spacing: .12em; text-transform: uppercase; color: rgba(255, 255, 255, .72); }
-.hobby-cap p b { font: 600 .88rem/1.35 var(--f-display); }
-.hobby.inactive { filter: saturate(.25); }
-.badge-paused {
-  position: absolute; top: .6rem; right: .6rem; font: 600 .62rem var(--f-mono); letter-spacing: .12em; text-transform: uppercase;
-  color: #fff; background: rgba(8, 6, 20, .6); border: 1px solid rgba(255, 255, 255, .3); border-radius: 99px; padding: .1rem .5rem;
+.sheet-ico { flex: none; width: 1.1rem; height: 1.1rem; color: var(--c, var(--violet)); }
+.sheet-ico svg { display: block; width: 100%; height: 100%; }
+.sheet dd { margin: 0; min-width: 0; font: 600 .98rem/1.35 var(--f-display); }
+.sheet-row.paused dd { color: var(--muted); }
+@media (max-width: 640px) {
+  .sheet { grid-template-columns: minmax(0, 1fr); padding-inline: 1rem; }
+  .sheet-row:nth-last-child(2) { border-bottom: 1px dashed var(--line); }
+  .sheet dt { width: 6.5rem; }
 }
 
 /* Socials: app-style tiles with brand icons */
@@ -349,7 +340,7 @@ footer a { font: 700 .9rem var(--f-display); text-decoration: none; }
   <!-- INTRO -->
   <section class="hero" id="top" aria-labelledby="hero-title">
     <div class="wrap">
-      <h1 id="hero-title" class="sr">lilcham, vibe coder and Discord community manager</h1>
+      <h1 id="hero-title" class="sr">lilcham (lilxcham), vibe coder and Discord community manager</h1>
       <div class="vn" role="group" aria-label="Introduction">
         <span class="vn-name" aria-hidden="true">lilcham</span>
         <p>Feel free to check out my story.</p>
@@ -439,25 +430,12 @@ footer a { font: 700 .9rem var(--f-display); text-decoration: none; }
   <section class="block" id="hobbies" aria-labelledby="hob-title">
     <div class="wrap">
       <div class="sec-head"><h2 id="hob-title">Hobbies</h2><span class="rule" aria-hidden="true"></span></div>
-      <ul class="hobbies">
-        <li class="hobby" style="--h1: #f58fbd; --h2: #6a43c9">
-          <span class="hobby-art" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M12 3l2.6 5.6 6.1.7-4.5 4.2 1.2 6L12 16.6 6.6 19.5l1.2-6L3.3 9.3l6.1-.7z"/></svg></span>
-          <div class="hobby-cap"><h3>Anime</h3><p><span>Favourite</span><b>Naruto</b></p></div>
-        </li>
-        <li class="hobby" style="--h1: #7486ff; --h2: #33207f">
-          <span class="hobby-art" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="2" y="7" width="20" height="11" rx="5"/><path d="M7 11v3M5.5 12.5h3"/><circle cx="16" cy="11.5" r="1" fill="currentColor"/><circle cx="18" cy="13.5" r="1" fill="currentColor"/></svg></span>
-          <div class="hobby-cap"><h3>Gaming</h3><p><span>Favourites</span><b>Deadlock, Dota 2</b></p></div>
-        </li>
-        <li class="hobby" style="--h1: #ff7a8a; --h2: #7d2463">
-          <span class="hobby-art" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M9 18V6l11-2v12"/><circle cx="6.5" cy="18" r="2.5"/><circle cx="17.5" cy="16" r="2.5"/></svg></span>
-          <div class="hobby-cap"><h3>Music</h3><p><span>Favourites</span><b>Linkin Park, Evanescence</b></p></div>
-        </li>
-        <li class="hobby inactive" style="--h1: #8a86a8; --h2: #2d2a44">
-          <span class="badge-paused">Paused</span>
-          <span class="hobby-art" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M10 9.5v5l4-2.5z" fill="currentColor"/></svg></span>
-          <div class="hobby-cap"><h3>Editing</h3><p><span>Status</span><b>Inactive for now</b></p></div>
-        </li>
-      </ul>
+      <dl class="sheet">
+        <div class="sheet-row"><dt><span class="sheet-ico" style="--c: var(--sakura)" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M12 3l2.6 5.6 6.1.7-4.5 4.2 1.2 6L12 16.6 6.6 19.5l1.2-6L3.3 9.3l6.1-.7z"/></svg></span>Anime</dt><dd>Naruto</dd></div>
+        <div class="sheet-row"><dt><span class="sheet-ico" style="--c: var(--violet)" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="2" y="7" width="20" height="11" rx="5"/><path d="M7 11v3M5.5 12.5h3"/><circle cx="16" cy="11.5" r="1" fill="currentColor"/><circle cx="18" cy="13.5" r="1" fill="currentColor"/></svg></span>Games</dt><dd>Deadlock, Dota 2</dd></div>
+        <div class="sheet-row"><dt><span class="sheet-ico" style="--c: var(--sakura)" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 18V6l11-2v12"/><circle cx="6.5" cy="18" r="2.5"/><circle cx="17.5" cy="16" r="2.5"/></svg></span>Music</dt><dd>Linkin Park, Evanescence</dd></div>
+        <div class="sheet-row paused"><dt><span class="sheet-ico" style="--c: var(--muted)" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M10 9.5v5l4-2.5z" fill="currentColor"/></svg></span>Editing</dt><dd>Paused for now</dd></div>
+      </dl>
     </div>
   </section>
 
@@ -492,7 +470,7 @@ footer a { font: 700 .9rem var(--f-display); text-decoration: none; }
 
 <footer>
   <div class="wrap">
-    <span>© 2026 lilcham</span>
+    <span>© 2026 lilcham · @lilxcham</span>
     <a href="#top">Back to top ↑</a>
   </div>
 </footer>
