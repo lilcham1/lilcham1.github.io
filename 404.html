@@ -5,34 +5,27 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Page not found | lilcham</title>
 <meta name="robots" content="noindex">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230b0a16'/%3E%3Ccircle cx='32' cy='32' r='17' fill='%23f6e7c1'/%3E%3C/svg%3E">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oxanium:wght@700;800&family=IBM+Plex+Mono:wght@500&display=swap">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230c0c10'/%3E%3Ccircle cx='32' cy='32' r='12' fill='%23a89bff'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@600;700&family=JetBrains+Mono:wght@400&display=swap">
 <style>
-  :root { color-scheme: dark; }
+  :root { --bg: #0c0c10; --fg: #ecebf1; --muted: #9a98a8; --accent: #a89bff; --ink: #0c0c10; color-scheme: dark; }
+  @media (prefers-color-scheme: light) { :root { --bg: #f7f7f9; --fg: #15141a; --muted: #5f5d6b; --accent: #5b47d6; --ink: #fff; color-scheme: light; } }
   * { box-sizing: border-box; }
   html, body { height: 100%; }
-  body {
-    margin: 0; display: grid; place-items: center; padding: 16px; color: #efebf9; font-family: "Oxanium", "Segoe UI", system-ui, sans-serif;
-    background: radial-gradient(60% 50% at 75% 10%, rgba(245, 174, 202, .22), transparent 70%), linear-gradient(#2a1d4c, #0b0a16 70%);
-  }
-  main { text-align: center; display: grid; gap: 1rem; justify-items: center; }
-  .moon { width: 88px; height: 88px; border-radius: 50%; background: radial-gradient(circle at 38% 36%, #fffdf7, #fcf5e3 55%, #efe1c2);
-    box-shadow: 0 0 60px 18px rgba(250, 240, 215, .25); margin-bottom: .5rem; }
-  .code { font: 500 .85rem "IBM Plex Mono", ui-monospace, monospace; letter-spacing: .2em; color: #f5aeca; }
-  h1 { margin: 0; font-size: clamp(1.8rem, 6vw, 2.6rem); font-weight: 800; }
-  p { margin: 0; color: #b3acd0; font-family: "Segoe UI", system-ui, sans-serif; }
-  a { display: inline-block; margin-top: .5rem; padding: .6rem 1.2rem; border-radius: 6px; background: #b4a2ff; color: #0b0a16;
-    font-weight: 700; text-decoration: none; }
-  a:hover { background: #efebf9; }
-  a:focus-visible { outline: 3px solid #f5aeca; outline-offset: 3px; }
+  body { margin: 0; display: grid; place-items: center; padding: 20px; background: var(--bg); color: var(--fg); font-family: "Schibsted Grotesk", "Segoe UI", system-ui, sans-serif; }
+  main { display: grid; gap: .6rem; max-width: 28rem; }
+  .code { font: 400 .8rem "JetBrains Mono", ui-monospace, monospace; letter-spacing: .14em; color: var(--muted); }
+  h1 { margin: 0; font-size: clamp(1.6rem, 5vw, 2.2rem); letter-spacing: -.02em; }
+  p { margin: 0; color: var(--muted); }
+  a { display: inline-block; margin-top: .6rem; padding: .55rem 1rem; border-radius: 6px; background: var(--accent); color: var(--ink); font-weight: 600; text-decoration: none; }
+  a:focus-visible { outline: 2px solid var(--fg); outline-offset: 3px; }
 </style>
 </head>
 <body>
 <main>
-  <div class="moon" aria-hidden="true"></div>
   <span class="code">404</span>
-  <h1>Lost in the night</h1>
-  <p>This page doesn't exist.</p>
+  <h1>That page doesn't exist</h1>
+  <p>The address may be out of date.</p>
   <a href="/">Back to lilcham</a>
 </main>
 </body>
