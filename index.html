@@ -5,9 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>lilxcham | Vibe coder & Discord community manager</title>
 <script>try { var th = localStorage.getItem('lilcham-theme'); if (th) document.documentElement.setAttribute('data-theme', th); } catch (e) {}
-// Entrance animations start hidden, so only switch them on when the reveal script can run; if it never
-// reports in, show everything rather than leave parts of the page invisible.
-if (window.IntersectionObserver && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
+// Animations are always on, whatever the device's reduced-motion setting (the owner's choice). Entrances
+// start hidden, so only switch them on when the reveal script can run; if it never reports in, show
+// everything rather than leave parts of the page invisible.
+if (window.IntersectionObserver) {
   document.documentElement.classList.add('motion');
   addEventListener('load', function () { setTimeout(function () { if (!document.documentElement.hasAttribute('data-reveal-ready')) document.documentElement.classList.remove('motion'); }, 800); });
 }</script>
@@ -318,7 +319,7 @@ footer a { font: 700 .9rem var(--f-display); text-decoration: none; }
 .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 
 /* ---------- Motion: anime-scene entrances ----------
-   Only under html.motion (set in the head unless the visitor asks for reduced motion). The reveal script
+   Only under html.motion (set in the head once the browser can run the reveal script). The reveal script
    adds .in as each part scrolls into view, and --d staggers the parts that arrive together. */
 @keyframes vn-open { 0% { opacity: 0; transform: translateY(28px) scaleY(.9); } 65% { opacity: 1; transform: translateY(-3px) scaleY(1.01); } 100% { opacity: 1; transform: none; } }
 @keyframes tag-pop { 0% { opacity: 0; transform: scale(.4) rotate(-6deg); } 70% { opacity: 1; transform: scale(1.1); } 100% { opacity: 1; transform: none; } }
@@ -380,11 +381,6 @@ html.motion .soc:hover .ico, html.motion .soc:focus-visible .ico { animation: ho
   opacity: 0; pointer-events: none; transition: transform .4s cubic-bezier(.2, .8, .2, 1), width .4s cubic-bezier(.2, .8, .2, 1), opacity .25s;
 }
 html.motion .nav a[aria-current="true"] { background: transparent; }
-
-@media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
-  .soc:hover, .soc:focus-visible { transform: none; }
-}
 </style>
 </head>
 <body>
@@ -570,7 +566,7 @@ html.motion .nav a[aria-current="true"] { background: transparent; }
 <script>
 (function () {
   var root = document.documentElement;
-  var reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var reduce = false; // animations always on, whatever the device's reduced-motion setting (the owner's choice)
   var motion = root.classList.contains('motion');
 
   /* ---------- Entrances: each part plays its scene-in as it scrolls into view ---------- */

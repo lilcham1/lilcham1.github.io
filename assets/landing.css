@@ -111,4 +111,4 @@ footer a { color: #a0a0a8; }
   header nav a.hide-sm { display: none; }
   .hero { padding-top: 48px; }
 }
-@media (prefers-reduced-motion: no-preference) { html { scroll-behavior: smooth; } }
+html { scroll-behavior: smooth; }
