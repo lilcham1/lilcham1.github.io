@@ -1,0 +1,80 @@
+/* DesktopGroups: "springy iPhone folders". Things pop open with a spring, the icon jiggles like iOS edit
+   mode, the theme screenshots open out of a point like a folder, and sakura petals drift behind the hero
+   (falling petals are one of the app's real themes).
+   Static styles first; anything that moves only runs under html.motion (see landing.js). */
+body { --stagger: .09; --spring: cubic-bezier(.34, 1.56, .64, 1); }
+
+@keyframes dg-pop { 0% { opacity: 0; transform: scale(.4); } 60% { opacity: 1; transform: scale(1.08); } 80% { transform: scale(.97); } 100% { opacity: 1; transform: none; } }
+@keyframes dg-up { from { opacity: 0; transform: translateY(24px) scale(.96); } to { opacity: 1; transform: none; } }
+@keyframes dg-jiggle { 0%, 100% { transform: rotate(0); } 25% { transform: rotate(-3deg); } 75% { transform: rotate(3deg); } }
+@keyframes dg-fall {
+  0% { transform: translate3d(0, -40px, 0) rotate(0); opacity: 0; }
+  10% { opacity: .85; } 85% { opacity: .85; }
+  100% { transform: translate3d(var(--sway), 105vh, 0) rotate(var(--spin)); opacity: 0; }
+}
+@keyframes dg-neon {
+  0%, 100% { box-shadow: 0 0 0 1px rgba(255, 63, 207, .4), 0 0 26px rgba(255, 63, 207, .28), 0 24px 60px #000a; }
+  50% { box-shadow: 0 0 0 1px rgba(34, 200, 238, .5), 0 0 36px rgba(34, 200, 238, .36), 0 24px 60px #000a; }
+}
+
+/* hero: the icon pops like an app opening, the text springs up after it */
+html.motion .hero .icon { animation: dg-pop .7s cubic-bezier(.2, .8, .2, 1) both; }
+html.motion .hero .icon:hover { animation: dg-jiggle .26s ease-in-out infinite; }
+html.motion .hero h1, html.motion .hero .lead, html.motion .hero .cta, html.motion .hero .meta { animation: dg-up .7s var(--spring) both; }
+html.motion .hero h1 { animation-delay: .15s; }
+html.motion .hero .lead { animation-delay: .25s; }
+html.motion .hero .cta { animation-delay: .35s; }
+html.motion .hero .meta { animation-delay: .45s; }
+
+/* sakura petals, behind the hero content */
+.hero { position: relative; overflow: hidden; }
+.hero .wrap > :not(.petals) { position: relative; z-index: 1; }
+.petals { display: none; }
+html.motion .petals { display: block; position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
+html.motion .petals i {
+  position: absolute; top: 0; width: 12px; height: 9px; border-radius: 12px 0 12px 0; opacity: 0;
+  background: linear-gradient(135deg, #ffd6ea, #ff8fc8); animation: dg-fall var(--t) linear var(--w) infinite;
+}
+.petals i:nth-child(1) { left: 6%;  --t: 11s; --w: 0s;   --sway: 60px;  --spin: 300deg; }
+.petals i:nth-child(2) { left: 17%; --t: 14s; --w: 3s;   --sway: -40px; --spin: -260deg; width: 9px; height: 7px; }
+.petals i:nth-child(3) { left: 29%; --t: 12s; --w: 6s;   --sway: 80px;  --spin: 340deg; }
+.petals i:nth-child(4) { left: 41%; --t: 16s; --w: 1.5s; --sway: -70px; --spin: 220deg; }
+.petals i:nth-child(5) { left: 55%; --t: 13s; --w: 8s;   --sway: 50px;  --spin: -320deg; }
+.petals i:nth-child(6) { left: 66%; --t: 15s; --w: 4.5s; --sway: -50px; --spin: 280deg; }
+.petals i:nth-child(7) { left: 77%; --t: 12s; --w: 10s;  --sway: 70px;  --spin: -240deg; }
+.petals i:nth-child(8) { left: 88%; --t: 17s; --w: 2s;   --sway: -60px; --spin: 300deg; }
+.petals i:nth-child(9) { left: 95%; --t: 14s; --w: 7s;   --sway: -30px; --spin: -280deg; }
+
+/* the theme screenshots open out of a point, like a folder, and fan out a little on wide screens */
+html.motion .gallery img { opacity: 0; transform: scale(.15); transition: opacity .35s ease-out var(--d, 0s), transform .8s var(--spring) var(--d, 0s); }
+html.motion .gallery img.in { opacity: 1; transform: none; }
+html.motion .gallery img.in:first-child { animation: dg-neon 4s ease-in-out 1.2s infinite; }
+@media (min-width: 1000px) {
+  html.motion .gallery img.in:nth-child(1) { transform: rotate(-4deg) translateY(10px); }
+  html.motion .gallery img.in:nth-child(3) { transform: rotate(4deg) translateY(10px); }
+  html.motion .gallery img.in:hover { transform: scale(1.03); }
+}
+
+/* cards pop in on a spring; their icon jiggles on hover */
+html.motion .card { opacity: 0; transform: scale(.88); transition: opacity .4s ease-out var(--d, 0s), transform .65s var(--spring) var(--d, 0s), border-color .25s; }
+html.motion .card.in { opacity: 1; transform: none; }
+html.motion .card:hover { border-color: color-mix(in srgb, var(--a) 45%, var(--line)); }
+html.motion .card:hover h3 .ico { animation: dg-jiggle .26s ease-in-out 2; }
+
+/* setup steps tick on, one after another */
+html.motion ol.steps li { opacity: 0; transform: translateY(14px); transition: opacity .4s ease-out var(--d, 0s), transform .6s var(--spring) var(--d, 0s); }
+html.motion ol.steps li::before { transform: scale(0); transition: transform .5s var(--spring) calc(var(--d, 0s) + .18s); }
+html.motion ol.steps li.in, html.motion ol.steps li.in::before { opacity: 1; transform: none; }
+
+/* everything else springs up */
+html.motion section h2, html.motion section .sub, html.motion details, html.motion .final .cta {
+  opacity: 0; transform: translateY(18px) scale(.98); transition: opacity .45s ease-out var(--d, 0s), transform .65s var(--spring) var(--d, 0s);
+}
+html.motion section h2.in, html.motion section .sub.in, html.motion details.in, html.motion .final .cta.in { opacity: 1; transform: none; }
+
+/* FAQ answers spring open */
+@supports (interpolate-size: allow-keywords) {
+  html.motion { interpolate-size: allow-keywords; }
+  html.motion details::details-content { block-size: 0; overflow: hidden; transition: block-size .4s var(--spring), content-visibility .4s allow-discrete; }
+  html.motion details[open]::details-content { block-size: auto; }
+}

@@ -1,0 +1,79 @@
+/* TheTracker: "esports HUD". Panels boot up with a wipe and a loading bar, the screenshot tilts flat as
+   you scroll to it while a scanline passes, and list bullets ping like live dots.
+   Static styles first; anything that moves only runs under html.motion (see landing.js). */
+body { --stagger: .1; }
+
+/* a live dot beside the logo (decoration only) */
+.logo::after { content: ""; width: 7px; height: 7px; margin-left: -3px; border-radius: 50%; background: var(--a); box-shadow: 0 0 8px var(--a); }
+
+@keyframes tt-wipe { from { clip-path: inset(0 100% 0 0); } to { clip-path: inset(0 0 0 0); } }
+@keyframes tt-flicker { 0% { opacity: 0; } 30% { opacity: .9; } 42% { opacity: .25; } 58%, 100% { opacity: 1; } }
+@keyframes tt-live { 0%, 100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--a) 70%, transparent); } 60% { box-shadow: 0 0 0 7px transparent; } }
+@keyframes tt-ping { from { transform: scale(1); opacity: .9; } to { transform: scale(2.6); opacity: 0; } }
+@keyframes tt-scan { from { top: 0; opacity: 0; } 12% { opacity: 1; } 88% { opacity: 1; } to { top: calc(100% - 90px); opacity: 0; } }
+@keyframes tt-flatten { from { transform: rotateX(24deg) scale(.92); opacity: .45; } to { transform: none; opacity: 1; } }
+
+html.motion .logo::after { animation: tt-live 2s ease-out infinite; }
+
+/* hero: the HUD boots, left to right */
+html.motion .hero .icon { animation: tt-flicker .6s linear both; }
+html.motion .hero h1 { animation: tt-wipe .75s cubic-bezier(.7, 0, .3, 1) .15s both; }
+html.motion .hero .lead { animation: tt-wipe .7s cubic-bezier(.7, 0, .3, 1) .45s both; }
+html.motion .hero .cta { animation: tt-flicker .5s linear .75s both; }
+html.motion .hero .meta { animation: tt-flicker .5s linear .9s both; }
+
+/* the screenshot lies tilted back and flattens as it comes into view; one scanline passes over it */
+.shot { position: relative; perspective: 1400px; }
+html.motion .shot img { transform-origin: 50% 0; transform: rotateX(24deg) scale(.92); opacity: .45; transition: transform 1.2s cubic-bezier(.2, .8, .2, 1), opacity 1s ease-out; }
+html.motion .shot.in img { transform: none; opacity: 1; }
+@supports (animation-timeline: view()) {
+  /* where the browser can, tie the flattening to the scroll itself */
+  html.motion .shot img { transition: none; animation: tt-flatten linear both; animation-timeline: view(); animation-range: entry 10% cover 40%; }
+}
+html.motion .shot::after {
+  content: ""; position: absolute; left: 0; right: 0; top: 0; height: 90px; pointer-events: none; opacity: 0; border-radius: 14px;
+  background: linear-gradient(transparent, color-mix(in srgb, var(--a) 18%, transparent)); border-bottom: 1px solid color-mix(in srgb, var(--a) 70%, transparent);
+}
+html.motion .shot.in::after { animation: tt-scan 1.8s ease-in-out .9s both; }
+
+/* section titles wipe in like HUD labels; the rest fades up.
+   (Wipes wait as transparent, not clipped: a fully clipped element never counts as on screen.) */
+@keyframes tt-wipe-r { from { clip-path: inset(0 100% 0 0 round 14px); } to { clip-path: inset(0 0 0 0 round 14px); } }
+html.motion section h2 { opacity: 0; }
+html.motion section h2.in { opacity: 1; animation: tt-wipe .65s cubic-bezier(.7, 0, .3, 1) var(--d, 0s) both; }
+html.motion section .sub, html.motion details, html.motion .note, html.motion .final .cta {
+  opacity: 0; transform: translateY(10px); transition: opacity .5s ease-out var(--d, 0s), transform .5s ease-out var(--d, 0s);
+}
+html.motion section .sub.in, html.motion details.in, html.motion .note.in, html.motion .final .cta.in { opacity: 1; transform: none; }
+
+/* game panels boot up: a wipe, a loading bar along the top, then the icon flickers on */
+html.motion .card { position: relative; opacity: 0; transition: border-color .25s; }
+html.motion .card.in { opacity: 1; animation: tt-wipe-r .7s cubic-bezier(.7, 0, .3, 1) var(--d, 0s) both; }
+html.motion .card::after {
+  content: ""; position: absolute; left: 0; top: 0; width: 100%; height: 2px; background: linear-gradient(90deg, var(--a), var(--b));
+  transform: scaleX(0); transform-origin: 0 50%; transition: transform .9s ease-out calc(var(--d, 0s) + .45s);
+}
+html.motion .card.in::after { transform: none; }
+html.motion .card.in h3 .ico { animation: tt-flicker .5s linear calc(var(--d, 0s) + .55s) both; }
+html.motion .card:hover { border-color: color-mix(in srgb, var(--a) 50%, var(--line)); }
+
+/* list bullets ping like live dots as each line appears */
+ul.ticks li::after { content: ""; position: absolute; left: 0; top: .45em; width: 14px; height: 14px; border-radius: 50%; border: 2px solid var(--a); opacity: 0; pointer-events: none; }
+html.motion ul.ticks li { opacity: 0; transform: translateX(-10px); transition: opacity .45s ease-out var(--d, 0s), transform .45s ease-out var(--d, 0s); }
+html.motion ul.ticks li.in { opacity: 1; transform: none; }
+html.motion ul.ticks li.in::after { animation: tt-ping .9s ease-out calc(var(--d, 0s) + .2s) 2; }
+
+/* buttons: an angled underline slides in on hover */
+html.motion .btn { position: relative; }
+html.motion .btn::after {
+  content: ""; position: absolute; left: 14%; right: 14%; bottom: 6px; height: 2px; background: currentColor; opacity: .7;
+  transform: skewX(-35deg) scaleX(0); transition: transform .3s cubic-bezier(.2, .8, .2, 1);
+}
+html.motion .btn:hover::after { transform: skewX(-35deg) scaleX(1); }
+
+/* FAQ answers slide open */
+@supports (interpolate-size: allow-keywords) {
+  html.motion { interpolate-size: allow-keywords; }
+  html.motion details::details-content { block-size: 0; overflow: hidden; transition: block-size .3s ease, content-visibility .3s allow-discrete; }
+  html.motion details[open]::details-content { block-size: auto; }
+}
