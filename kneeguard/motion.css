@@ -1,0 +1,93 @@
+/* KneeGuard: "scanner". A drifting blurple glow, a highlighter pill in the headline, cursor light on the
+   cards, and a strip of disguised links that a scan line catches as they pass.
+   Static styles first; anything that moves only runs under html.motion (see landing.js). */
+body { --stagger: .07; }
+
+/* headline pill */
+.pill {
+  display: inline-block; padding: 0 .22em; margin-left: .04em; border-radius: .22em; color: #fff;
+  background: linear-gradient(135deg, var(--a), var(--b)) no-repeat; background-size: 100% 100%;
+  box-shadow: 0 10px 40px color-mix(in srgb, var(--b) 35%, transparent);
+}
+
+/* hero glow */
+.hero { position: relative; overflow: hidden; }
+.hero > .wrap { position: relative; }
+.hero::before {
+  content: ""; position: absolute; left: 50%; top: -280px; width: 680px; height: 680px; margin-left: -340px; border-radius: 50%;
+  background: radial-gradient(circle, color-mix(in srgb, var(--b) 42%, transparent), transparent 65%);
+  filter: blur(40px); opacity: .75; pointer-events: none;
+}
+
+/* shield beside "Fair to your members" */
+h2 .shield {
+  display: inline-grid; place-items: center; width: 1.15em; height: 1.15em; margin-right: .35em; vertical-align: -.14em;
+  border-radius: 30%; background: color-mix(in srgb, var(--a) 18%, transparent);
+}
+h2 .shield svg { width: .68em; height: .68em; fill: none; stroke: var(--link); stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+
+/* disguised-link strip: wraps as a plain list without motion, scrolls endlessly with it */
+.marquee { position: relative; overflow: hidden; padding: 14px 0; border: 1px solid var(--line); border-radius: 14px; background: var(--panel); }
+.marquee .chips { display: flex; gap: 10px; padding: 0 14px; }
+.marquee .chips[aria-hidden] { display: none; }
+.chip { white-space: nowrap; transition: color .25s, border-color .25s, background .25s; }
+.chip.caught { color: #ff9a9a; border-color: #ff5d5d; background: #2a1013; text-decoration: line-through; text-decoration-color: #ff5d5d; }
+
+@keyframes kg-rise { from { opacity: 0; transform: translateY(18px); filter: blur(6px); } to { opacity: 1; transform: none; filter: none; } }
+@keyframes kg-wipe { from { background-size: 0% 100%; } to { background-size: 100% 100%; } }
+@keyframes kg-drift { 0%, 100% { transform: translate(0, 0) scale(1); } 50% { transform: translate(70px, 36px) scale(1.12); } }
+@keyframes kg-slide { to { transform: translateX(-50%); } }
+@keyframes kg-ping { from { box-shadow: 0 0 0 0 color-mix(in srgb, var(--a) 65%, transparent); } to { box-shadow: 0 0 0 18px transparent; } }
+
+/* hero plays on load: icon, headline, pill, then the rest */
+html.motion .hero .icon, html.motion .hero h1, html.motion .hero .lead, html.motion .hero .cta, html.motion .hero .meta {
+  animation: kg-rise .7s cubic-bezier(.2, .8, .2, 1) both;
+}
+html.motion .hero h1 { animation-delay: .12s; }
+html.motion .hero .lead { animation-delay: .28s; }
+html.motion .hero .cta { animation-delay: .42s; }
+html.motion .hero .meta { animation-delay: .52s; }
+html.motion .pill { animation: kg-wipe .7s cubic-bezier(.65, 0, .35, 1) .7s both; }
+html.motion .hero::before { animation: kg-drift 14s ease-in-out infinite; }
+
+/* scroll reveals: rise into place, cards one after another */
+html.motion section h2, html.motion section .sub, html.motion .ticks li, html.motion details, html.motion .note, html.motion .final .wrap > * {
+  opacity: 0; transform: translateY(16px);
+  transition: opacity .6s ease-out var(--d, 0s), transform .6s cubic-bezier(.2, .8, .2, 1) var(--d, 0s);
+}
+html.motion .card {
+  opacity: 0; transform: translateY(24px) scale(.97);
+  transition: opacity .6s ease-out var(--d, 0s), transform .7s cubic-bezier(.2, .8, .2, 1) var(--d, 0s), border-color .25s;
+}
+html.motion .in, html.motion section h2.in, html.motion section .sub.in, html.motion .ticks li.in, html.motion .final .wrap > .in { opacity: 1; transform: none; }
+html.motion h2.in .shield { animation: kg-ping 1.2s ease-out calc(var(--d, 0s) + .4s) 2; }
+
+/* cursor light on the cards */
+html.motion .card { position: relative; overflow: hidden; }
+html.motion .card > * { position: relative; }
+html.motion .card::before {
+  content: ""; position: absolute; inset: 0; pointer-events: none; opacity: 0; transition: opacity .3s;
+  background: radial-gradient(260px circle at var(--mx, 50%) var(--my, 50%), color-mix(in srgb, var(--a) 20%, transparent), transparent 70%);
+}
+html.motion .card:hover { border-color: color-mix(in srgb, var(--a) 55%, var(--line)); }
+html.motion .card:hover::before { opacity: 1; }
+
+/* the strip scrolls; a scan line in the middle strikes each link as it passes (landing.js marks .caught) */
+html.motion .marquee { -webkit-mask-image: linear-gradient(90deg, transparent, #000 10%, #000 90%, transparent); mask-image: linear-gradient(90deg, transparent, #000 10%, #000 90%, transparent); }
+html.motion .marquee .track { display: flex; width: max-content; animation: kg-slide 32s linear infinite; }
+html.motion .marquee .chips { padding: 0 10px 0 0; }
+html.motion .marquee .chips[aria-hidden] { display: flex; }
+html.motion .marquee:hover .track { animation-play-state: paused; }
+html.motion .marquee::after {
+  content: ""; position: absolute; top: 6px; bottom: 6px; left: 50%; width: 2px; margin-left: -1px; border-radius: 2px;
+  background: linear-gradient(transparent, var(--a), transparent); box-shadow: 0 0 14px 2px color-mix(in srgb, var(--a) 60%, transparent);
+}
+
+/* FAQ: answers slide open, + turns into × */
+html.motion details summary::after { content: "+"; display: inline-block; transition: transform .3s cubic-bezier(.2, .8, .2, 1); }
+html.motion details[open] summary::after { content: "+"; transform: rotate(45deg); }
+@supports (interpolate-size: allow-keywords) {
+  html.motion { interpolate-size: allow-keywords; }
+  html.motion details::details-content { block-size: 0; overflow: hidden; opacity: 0; transition: block-size .35s ease, opacity .35s ease, content-visibility .35s allow-discrete; }
+  html.motion details[open]::details-content { block-size: auto; opacity: 1; }
+}

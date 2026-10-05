@@ -4,7 +4,13 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>lilxcham | Vibe coder & Discord community manager</title>
-<script>try { var th = localStorage.getItem('lilcham-theme'); if (th) document.documentElement.setAttribute('data-theme', th); } catch (e) {}</script>
+<script>try { var th = localStorage.getItem('lilcham-theme'); if (th) document.documentElement.setAttribute('data-theme', th); } catch (e) {}
+// Entrance animations start hidden, so only switch them on when the reveal script can run; if it never
+// reports in, show everything rather than leave parts of the page invisible.
+if (window.IntersectionObserver && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
+  document.documentElement.classList.add('motion');
+  addEventListener('load', function () { setTimeout(function () { if (!document.documentElement.hasAttribute('data-reveal-ready')) document.documentElement.classList.remove('motion'); }, 800); });
+}</script>
 <meta name="description" content="lilxcham is a vibe coder managing Discord servers for YouTubers since 2018. Projects: TheTracker, Encore for YouTube Music, DesktopGroups and KneeGuard.">
 <link rel="canonical" href="https://lilxcham.com/">
 <meta name="robots" content="index, follow, max-image-preview:large">
@@ -311,6 +317,70 @@ footer a { font: 700 .9rem var(--f-display); text-decoration: none; }
 
 .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 
+/* ---------- Motion: anime-scene entrances ----------
+   Only under html.motion (set in the head unless the visitor asks for reduced motion). The reveal script
+   adds .in as each part scrolls into view, and --d staggers the parts that arrive together. */
+@keyframes vn-open { 0% { opacity: 0; transform: translateY(28px) scaleY(.9); } 65% { opacity: 1; transform: translateY(-3px) scaleY(1.01); } 100% { opacity: 1; transform: none; } }
+@keyframes tag-pop { 0% { opacity: 0; transform: scale(.4) rotate(-6deg); } 70% { opacity: 1; transform: scale(1.1); } 100% { opacity: 1; transform: none; } }
+@keyframes rise { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+@keyframes from-right { from { opacity: 0; transform: translateX(26px); } to { opacity: 1; transform: none; } }
+@keyframes shine { from { transform: translateX(-110%); } to { transform: translateX(110%); } }
+@keyframes hop { 0%, 100% { transform: none; } 40% { transform: translateY(-6px) rotate(-6deg); } 70% { transform: translateY(1px); } }
+@keyframes badge-pop { 40% { transform: scale(1.25); } }
+
+/* intro: the dialogue box opens like a visual-novel text box, then the name tag and the choices */
+html.motion .vn { transform-origin: 50% 100%; animation: vn-open .75s cubic-bezier(.2, .8, .2, 1) .1s both; }
+html.motion .vn-name { animation: tag-pop .5s cubic-bezier(.2, .8, .2, 1) .55s both; }
+html.motion .vn p { animation: rise .5s ease-out .7s both; }
+html.motion .choices a { animation: from-right .5s cubic-bezier(.2, .8, .2, 1) both; animation-delay: calc(.85s + var(--i, 0) * .1s); }
+
+/* section titles: a focus pull, then the title-card line draws out */
+html.motion .sec-head h2 { opacity: 0; filter: blur(10px); transform: scale(1.08); transform-origin: 0 50%;
+  transition: opacity .7s ease-out, filter .7s ease-out, transform .8s cubic-bezier(.2, .8, .2, 1); }
+html.motion .sec-head .rule { transform: scaleX(0); transform-origin: 0 50%; transition: transform 1s cubic-bezier(.65, 0, .35, 1) .25s; }
+html.motion .sec-head .sec-meta { opacity: 0; transition: opacity .6s ease-out .6s; }
+html.motion .sec-head.in h2, html.motion .sec-head.in .sec-meta { opacity: 1; filter: none; transform: none; }
+html.motion .sec-head.in .rule { transform: none; }
+
+/* timeline: each entry slides in, its node pops, then the rail draws down to the next one */
+html.motion .tl { opacity: 0; transform: translateX(-14px); transition: opacity .55s ease-out var(--d, 0s), transform .55s cubic-bezier(.2, .8, .2, 1) var(--d, 0s); }
+html.motion .tl::after { transform: scale(0); transition: transform .45s cubic-bezier(.3, 1.7, .5, 1) calc(var(--d, 0s) + .15s); }
+html.motion .tl:not(:last-child)::before { transform: scaleY(0); transform-origin: 50% 0; transition: transform .7s cubic-bezier(.65, 0, .35, 1) calc(var(--d, 0s) + .35s); }
+html.motion .tl.in, html.motion .tl.in::after, html.motion .tl.in:not(:last-child)::before { opacity: 1; transform: none; }
+
+/* projects: cards slide in on a slight diagonal, alternating sides, and a light sweeps across each once */
+html.motion .inv > li { opacity: 0; transform: translate(-30px, 22px) rotate(-1.2deg);
+  transition: opacity .7s ease-out var(--d, 0s), transform .8s cubic-bezier(.2, .8, .2, 1) var(--d, 0s), border-color .2s; }
+html.motion .inv > li:nth-child(even) { transform: translate(30px, 22px) rotate(1.2deg); }
+html.motion .inv > li.in { opacity: 1; transform: none; }
+.inv .item { overflow: hidden; } /* the clipped corners hide the sweep, but only overflow stops it widening the page */
+.inv .item::after {
+  content: ""; position: absolute; inset: 0; pointer-events: none; opacity: 0; transform: translateX(-110%);
+  background: linear-gradient(105deg, transparent 30%, color-mix(in srgb, var(--violet) 26%, transparent) 50%, transparent 70%);
+}
+html.motion .inv .item.in::after { opacity: 1; animation: shine 1.1s ease-in-out calc(var(--d, 0s) + .45s) both; }
+html.motion .state.pop { animation: badge-pop .5s ease-out; }
+
+/* hobbies: rows drift up and their icons give a little hop */
+html.motion .sheet-row { opacity: 0; transform: translateY(10px); transition: opacity .5s ease-out var(--d, 0s), transform .5s ease-out var(--d, 0s); }
+html.motion .sheet-row.in { opacity: 1; transform: none; }
+html.motion .sheet-row.in .sheet-ico { animation: hop .6s ease-out calc(var(--d, 0s) + .2s) both; }
+
+/* socials: tiles rise in one after another, and the icon hops on hover */
+html.motion .socials > li { opacity: 0; transform: translateY(22px) scale(.94);
+  transition: opacity .5s ease-out var(--d, 0s), transform .6s cubic-bezier(.3, 1.4, .5, 1) var(--d, 0s); }
+html.motion .socials > li.in { opacity: 1; transform: none; }
+html.motion .soc:hover .ico, html.motion .soc:focus-visible .ico { animation: hop .5s ease-out; }
+
+/* nav: one highlight that slides to the section being read */
+.nav { position: relative; }
+.nav a { position: relative; z-index: 1; }
+.nav-ind {
+  position: absolute; left: 0; top: 0; width: 0; height: 0; border-radius: var(--radius); background: var(--surface-2);
+  opacity: 0; pointer-events: none; transition: transform .4s cubic-bezier(.2, .8, .2, 1), width .4s cubic-bezier(.2, .8, .2, 1), opacity .25s;
+}
+html.motion .nav a[aria-current="true"] { background: transparent; }
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
   .soc:hover, .soc:focus-visible { transform: none; }
@@ -501,6 +571,27 @@ footer a { font: 700 .9rem var(--f-display); text-decoration: none; }
 (function () {
   var root = document.documentElement;
   var reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var motion = root.classList.contains('motion');
+
+  /* ---------- Entrances: each part plays its scene-in as it scrolls into view ---------- */
+  root.setAttribute('data-reveal-ready', '');
+  if (motion) {
+    document.querySelectorAll('.choices a').forEach(function (a, i) { a.style.setProperty('--i', i); });
+    var io = new IntersectionObserver(function (entries) {
+      // parts that arrive in the same moment are staggered, counted per group (timeline, card grid, ...)
+      var groups = [], counts = [];
+      entries.forEach(function (e) {
+        if (!e.isIntersecting) return;
+        var el = e.target, g = groups.indexOf(el.parentNode);
+        if (g < 0) { groups.push(el.parentNode); counts.push(0); g = groups.length - 1; }
+        var step = el.classList.contains('tl') ? .8 : .09; // timeline: wait for the rail to reach the next node
+        el.style.setProperty('--d', (counts[g]++ * step).toFixed(2) + 's');
+        el.classList.add('in');
+        io.unobserve(el);
+      });
+    }, { rootMargin: '0px 0px -8% 0px', threshold: .12 });
+    document.querySelectorAll('.sec-head, .tl, .inv > li, .sheet-row, .socials > li').forEach(function (el) { io.observe(el); });
+  }
 
   function isLight() {
     var th = root.getAttribute('data-theme');
@@ -741,10 +832,30 @@ footer a { font: 700 .9rem var(--f-display); text-decoration: none; }
   /* ---------- Nav: highlight the section being read ---------- */
   var navLinks = document.querySelectorAll('.nav a'), lockUntil = 0;
   var sections = Array.prototype.map.call(navLinks, function (a) { return document.getElementById(a.hash.slice(1)); });
+  // with motion on, one highlight slides between the links instead of each link lighting up on its own
+  var navInd = null;
+  if (motion) {
+    navInd = document.createElement('span');
+    navInd.className = 'nav-ind'; navInd.setAttribute('aria-hidden', 'true');
+    document.querySelector('.nav').appendChild(navInd); // last, so the links keep their :first-child styles
+  }
+  function moveInd() {
+    if (!navInd) return;
+    var a = document.querySelector('.nav a[aria-current="true"]');
+    if (!a) { navInd.style.opacity = '0'; return; }
+    var appearing = navInd.style.opacity !== '1';
+    if (appearing) navInd.style.transition = 'none'; // first appearance: show it in place, don't slide in from the left
+    navInd.style.width = a.offsetWidth + 'px';
+    navInd.style.height = a.offsetHeight + 'px';
+    navInd.style.transform = 'translate(' + a.offsetLeft + 'px, ' + a.offsetTop + 'px)';
+    if (appearing) { void navInd.offsetWidth; navInd.style.transition = ''; }
+    navInd.style.opacity = '1';
+  }
   function markNav(id) {
     navLinks.forEach(function (a) {
       if (a.hash === '#' + id) a.setAttribute('aria-current', 'true'); else a.removeAttribute('aria-current');
     });
+    moveInd();
   }
   function syncNav() {
     if (performance.now() < lockUntil) return;
@@ -760,7 +871,7 @@ footer a { font: 700 .9rem var(--f-display); text-decoration: none; }
     if (performance.now() < lockUntil) { lockUntil = performance.now() + 200; return; } // still travelling to a clicked section
     syncNav();
   }, { passive: true });
-  addEventListener('resize', syncNav);
+  addEventListener('resize', function () { syncNav(); moveInd(); });
   // a click on a link to a section wins over the scroll position until the visitor scrolls again
   document.addEventListener('click', function (e) {
     var a = e.target.closest ? e.target.closest('a[href^="#"]') : null;
@@ -770,6 +881,7 @@ footer a { font: 700 .9rem var(--f-display); text-decoration: none; }
     lockUntil = performance.now() + 600;
   });
   syncNav();
+  if (document.fonts) document.fonts.ready.then(moveInd); // link widths change once the web fonts arrive
 
   /* ---------- Release versions: read the latest tag from GitHub (live site only, cached per visit) ---------- */
   if (/(github\.io|lilxcham\.com)$/.test(location.hostname) && window.fetch) {
@@ -781,7 +893,7 @@ footer a { font: 700 .9rem var(--f-display); text-decoration: none; }
         .then(function (r) { return r.ok ? r.json() : null; })
         .then(function (d) {
           if (!d || !d.tag_name) return;
-          el.textContent = d.tag_name;
+          if (el.textContent !== d.tag_name) { el.textContent = d.tag_name; el.classList.add('pop'); }
           try { sessionStorage.setItem(key, d.tag_name); } catch (e) {}
         })
         .catch(function () { /* keep the built-in version */ });
