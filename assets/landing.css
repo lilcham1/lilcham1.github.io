@@ -86,7 +86,28 @@ footer { border-top: 1px solid var(--line); padding: 28px 0 40px; color: #7a7a83
 footer .wrap { display: flex; flex-wrap: wrap; gap: 8px 24px; justify-content: space-between; }
 footer a { color: #a0a0a8; }
 
+/* Privacy policy and terms pages */
+.legal { width: min(760px, 100% - 32px); margin: 0 auto; padding: 40px 0 56px; }
+.legal .back { display: inline-flex; align-items: center; gap: 8px; color: var(--muted); text-decoration: none; font-size: 14px; font-weight: 600; }
+.legal .back:hover { color: var(--text); }
+.legal .back img { border-radius: 6px; }
+.legal h1 { font-size: clamp(28px, 5vw, 38px); margin: 24px 0 4px; }
+.legal .updated { margin: 0 0 20px; color: var(--muted); font-size: 13px; }
+.legal .intro { font-size: 17px; color: var(--text); }
+.legal h2 { margin: 34px 0 8px; font-size: 20px; letter-spacing: -.2px; }
+.legal p, .legal li { color: #c6c6cc; font-size: 15px; }
+.legal ul { padding-left: 20px; }
+.legal li { margin: 6px 0; }
+.legal .see { margin-top: 40px; color: var(--muted); }
+.legal .table { overflow-x: auto; margin-top: 8px; }
+.legal table { width: 100%; border-collapse: collapse; font-size: 14.5px; }
+.legal th, .legal td { text-align: left; vertical-align: top; padding: 10px 12px; border-bottom: 1px solid var(--line); }
+.legal th { color: var(--text); font-weight: 600; }
+.legal td { color: #c6c6cc; }
+.legal td:first-child { color: var(--text); white-space: nowrap; }
+
 @media (max-width: 760px) {
+  .legal td:first-child { white-space: normal; }
   header nav a.hide-sm { display: none; }
   .hero { padding-top: 48px; }
 }

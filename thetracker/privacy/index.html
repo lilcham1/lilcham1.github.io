@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Privacy policy · TheTracker</title>
+<meta name="description" content="Privacy policy for TheTracker, a project by lilxcham.">
+<link rel="canonical" href="https://lilxcham.com/thetracker/privacy/">
+<meta name="theme-color" content="#0e0e10">
+<link rel="icon" type="image/png" href="../img/icon.png">
+<link rel="stylesheet" href="/assets/landing.css">
+<style>:root { --a: #f6c453; --b: #e8742a; --link: #f7c873; }</style>
+</head>
+<body>
+<main class="legal">
+  <a class="back" href="../"><img src="../img/icon.png" alt="" width="22" height="22">TheTracker</a>
+  <h1>Privacy policy</h1>
+  <p class="updated">Last updated 5 October 2026</p>
+  <p class="intro">TheTracker runs on your PC. It has no ads and no analytics. I only receive data from it if you sign in, and then only what is listed below.</p>
+  <h2>What stays on your PC</h2><p>Your recorded sessions and notes, preferences, linked accounts (Steam account ID, BattleTag), cached data and a random install ID are kept in <code>%APPDATA%\TheTracker</code>. Uninstalling leaves this folder in place; delete it to remove everything.</p><h2>Where the data comes from</h2><p>TheTracker never reads game memory. It connects to these services:</p><div class="table"><table><thead><tr><th>Service</th><th>What it's for</th><th>What is sent</th></tr></thead><tbody><tr><td>Valve Game State Integration</td><td>Live Dota 2 and CS2 tracking</td><td>Nothing leaves your PC: the game sends your own match state to TheTracker at 127.0.0.1.</td></tr><tr><td>Steam</td><td>Sign in with Steam</td><td>Steam's login page opens in your browser. TheTracker receives your Steam account ID, never your password.</td></tr><tr><td>OpenDota</td><td>Dota 2 history, heroes, meta, matchups</td><td>Your Steam account ID.</td></tr><tr><td>Deadlock API</td><td>Deadlock stats</td><td>Your Steam account ID.</td></tr><tr><td>OverFast API</td><td>Overwatch stats</td><td>Your BattleTag, to read your public Overwatch profile.</td></tr><tr><td>Valve (dota2.com)</td><td>Dota 2 top players by region</td><td>Nothing about you.</td></tr><tr><td>GitHub</td><td>Update checks and downloads</td><td>A normal web request for the latest release.</td></tr></tbody></table></div><h2>If you sign in</h2><p>Signing in with Steam opens an account on TheTracker's cloud service (run on Convex) so your recorded Dota 2 matches can sync between PCs and appear on the shared leaderboard. It stores:</p><ul><li>your account and sign-in session, linked to your Steam account ID</li><li>your username, rank and role</li><li>for each recorded Dota 2 match: match ID, hero, date, length, game type, kills, deaths, gold lost, Roshan deaths, last hits and denies at set times, and key item timings</li><li>the random install ID, so matches synced before you signed in can join your account</li></ul><p>Your username and match stats are visible to other players on the shared leaderboard.</p><h2>Deleting your data</h2><p>In Settings you can delete everything you've published to the cloud, or sign out. You can also email me to have your cloud data removed. Data on your PC stays until you delete it.</p><h2>Notifications</h2><p>Match notifications are ordinary Windows notifications shown by your PC. They are off by default.</p><h2>Selling and sharing</h2><p>Nothing is sold, and nothing is shared for advertising.</p><h2>Contact</h2><p>Questions, requests or problems: email <a href="mailto:lilxcham@proton.me">lilxcham@proton.me</a>. This is a personal project run by one person, lilxcham, not a company, and I'll answer as soon as I can.</p>
+  <p class="see">See also the <a href="../terms/">Terms of use</a>.</p>
+</main>
+<footer>
+  <div class="wrap">
+    <span>TheTracker · <a href="../">Home</a> · <a href="../terms/">Terms of use</a></span>
+    <span><a href="mailto:lilxcham@proton.me">lilxcham@proton.me</a> · Made by <a href="/">lilxcham</a></span>
+  </div>
+</footer>
+</body>
+</html>
