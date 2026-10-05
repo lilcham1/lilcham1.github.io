@@ -83,3 +83,15 @@ html.motion section h2.in, html.motion section .sub.in, html.motion details.in, 
 /* until the hero is on screen (and again after it has left), its parts wait hidden so the load
    animation replays each time you come back to the top */
 html.motion .hero:not(.in) :is(.icon, h1, .lead, .cta, .meta) { opacity: 0; }
+
+/* opening: calm. A soft teal veil, the icon drifts up into view, then the veil fades away slowly.
+   Reveals start at --intro (landing.js). */
+body { --intro: .9; }
+@keyframes vb-veil { to { opacity: 0; visibility: hidden; } }
+@keyframes vb-icon { 0% { opacity: 0; transform: translateY(16px) scale(.96); } 55% { opacity: 1; transform: none; } 100% { opacity: 0; transform: translateY(-10px); } }
+html.motion .intro {
+  background: radial-gradient(60% 50% at 50% 45%, color-mix(in srgb, var(--a) 14%, var(--bg)), var(--bg));
+  animation: vb-veil 1s var(--calm) .55s both;
+}
+.intro-icon { width: 88px; height: 88px; border-radius: 22px; }
+html.motion .intro-icon { animation: vb-icon 1.2s var(--calm) both; }

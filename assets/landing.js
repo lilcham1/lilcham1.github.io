@@ -47,10 +47,24 @@
       el.classList.add('in');
     });
   }, { rootMargin: '0px 0px -8% 0px', threshold: [0, .12] });
-  document.querySelectorAll(REVEAL).forEach(function (el) {
-    // inside the hero only the hero itself and its pictures are revealed; its text plays with the hero
-    if (el.matches('.hero, .shot, .gallery img, .demo') || !el.closest('.hero')) io.observe(el);
-  });
+  // reveals start as the page's opening veil lifts (its --intro, in seconds), or at once if it is skipped
+  var revealing = false;
+  function startReveals() {
+    if (revealing) return; revealing = true;
+    document.querySelectorAll(REVEAL).forEach(function (el) {
+      // inside the hero only the hero itself and its pictures are revealed; its text plays with the hero
+      if (el.matches('.hero, .shot, .gallery img, .demo') || !el.closest('.hero')) io.observe(el);
+    });
+  }
+  var intro = document.querySelector('.intro') ? parseFloat(getComputedStyle(document.body).getPropertyValue('--intro')) || 0 : 0;
+  var introTimer = setTimeout(startReveals, intro * 1000);
+  var INPUT = ['wheel', 'keydown', 'pointerdown', 'touchstart'];
+  function skipIntro() {
+    INPUT.forEach(function (t) { removeEventListener(t, skipIntro); });
+    if (revealing) return;
+    root.classList.add('intro-skip'); clearTimeout(introTimer); startReveals();
+  }
+  if (intro) INPUT.forEach(function (t) { addEventListener(t, skipIntro, { passive: true }); });
 
   document.querySelectorAll('.card').forEach(function (card) {
     card.addEventListener('pointermove', function (e) {

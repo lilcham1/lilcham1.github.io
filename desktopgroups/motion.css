@@ -82,3 +82,15 @@ html.motion section h2.in, html.motion section .sub.in, html.motion details.in, 
 /* until the hero is on screen (and again after it has left), its parts wait hidden so the load
    animation replays each time you come back to the top */
 html.motion .hero:not(.in) :is(.icon, h1, .lead, .cta, .meta) { opacity: 0; }
+
+/* opening: folder. The icon pops in at the centre, then the screen collapses into it like a folder
+   closing behind you, and the page settles up to full size. Reveals start at --intro (landing.js). */
+body { --intro: .8; }
+@keyframes dg-veil { from { clip-path: circle(150% at 50% 50%); } to { clip-path: circle(0% at 50% 50%); visibility: hidden; } }
+@keyframes dg-icon-out { to { opacity: 0; transform: scale(.4); } }
+@keyframes dg-page { from { opacity: .4; transform: scale(.97); } to { opacity: 1; transform: none; } }
+html.motion .intro { animation: dg-veil .6s cubic-bezier(.7, 0, .25, 1) .6s both; }
+.intro-icon { width: 96px; height: 96px; }
+html.motion .intro-icon { animation: dg-pop .55s cubic-bezier(.2, .8, .2, 1) both, dg-icon-out .35s ease-in .85s both; }
+html.motion main { animation: dg-page .7s cubic-bezier(.2, .8, .2, 1) .65s both; }
+html.intro-skip main { animation: none; }
