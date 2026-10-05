@@ -40,8 +40,8 @@ if (window.IntersectionObserver) {
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oxanium:wght@600;700;800&family=Atkinson+Hyperlegible:wght@400;700&family=IBM+Plex+Mono:wght@500;600&display=swap">
 <style>
-/* Layout: a visual-novel dialogue box with choices, then four sections that each have their own form:
-   Experience (timeline panel), Projects (HUD cards), Hobbies (anime posters), Socials (app tiles).
+/* Layout: a visual-novel dialogue box with choices, then three sections that each have their own form:
+   Projects (wide HUD rows), Experience (timeline panel), Socials (app tiles).
    Set over an anime city: dusk fading to night as you scroll, moon, skyline, utility poles. */
 :root {
   --bg: #0b0a16;
@@ -174,7 +174,7 @@ p { margin: 0; }
 }
 
 /* ---------- Intro: visual-novel dialogue box with choices ---------- */
-.hero { padding-block: clamp(2.5rem, 8vw, 5rem) clamp(1.25rem, 3vw, 2rem); }
+.hero { padding-block: clamp(3.5rem, 11vw, 7.5rem) clamp(2rem, 5vw, 3.5rem); }
 .vn {
   position: relative; max-width: 640px; padding: 1.45rem 1.3rem 1.1rem;
   background: var(--surface); border: 2px solid var(--violet); border-radius: 4px;
@@ -205,8 +205,8 @@ p { margin: 0; }
 }
 
 /* ---------- Sections ---------- */
-section.block { padding-block: clamp(1.6rem, 4vw, 2.6rem); }
-.sec-head { display: flex; align-items: center; flex-wrap: wrap; gap: .3rem 1rem; margin-bottom: 1.1rem; }
+section.block { padding-block: clamp(3.5rem, 9vw, 7rem); }
+.sec-head { display: flex; align-items: center; flex-wrap: wrap; gap: .3rem 1rem; margin-bottom: 1.75rem; }
 .sec-head h2 { font-size: var(--step-h2); font-weight: 700; }
 .sec-head .rule { flex: 1 1 3rem; height: 1px; background: linear-gradient(90deg, var(--line), transparent); }
 .sec-meta { font: 500 .8rem var(--f-mono); color: var(--muted); }
@@ -215,7 +215,8 @@ a.sec-meta:hover { color: var(--fg); }
 
 /* Experience: one glass panel with a glowing timeline rail */
 .timeline {
-  list-style: none; margin: 0; padding: 1.15rem 1.35rem; display: grid; gap: 1.1rem;
+  --tl-gap: 1.7rem;
+  list-style: none; margin: 0; padding: 1.6rem 1.9rem; display: grid; gap: var(--tl-gap);
   background: var(--surface); border: 1px solid var(--line); border-radius: 16px;
   backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
 }
@@ -225,7 +226,7 @@ a.sec-meta:hover { color: var(--fg); }
   background: var(--bg); border: 2px solid var(--violet);
 }
 .tl:not(:last-child)::before { /* rail segment down to the next node */
-  content: ""; position: absolute; left: 5px; top: 1.25rem; bottom: calc(-1.1rem - .45rem); width: 2px; border-radius: 2px;
+  content: ""; position: absolute; left: 5px; top: 1.25rem; bottom: calc(-1 * var(--tl-gap) - .45rem); width: 2px; border-radius: 2px;
   background: linear-gradient(var(--sakura), var(--violet));
 }
 .tl.now::after { background: var(--sakura); border-color: var(--sakura); box-shadow: 0 0 0 4px color-mix(in srgb, var(--sakura) 25%, transparent); }
@@ -241,26 +242,38 @@ a.sec-meta:hover { color: var(--fg); }
 .tl ul.obj { margin: .3rem 0 0; padding-left: 1.1rem; display: grid; gap: .1rem; color: var(--muted); }
 .tl ul.obj li::marker { content: "◆  "; color: var(--violet); font-size: .7em; }
 
-/* Projects: HUD cards */
-.inv { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .8rem; list-style: none; margin: 0; padding: 0; }
-.inv > li:last-child:nth-child(odd) { grid-column: 1 / -1; }
-@media (max-width: 700px) { .inv { grid-template-columns: minmax(0, 1fr); } }
-.item { display: flex; flex-direction: column; gap: .55rem; min-width: 0; padding: 1rem 1.15rem 1.1rem; transition: border-color .2s; }
+/* Projects: wide HUD rows, one project per row. Icon on the left spanning both lines; name, type and
+   version on top; the description beside the buttons below. */
+.inv { display: grid; gap: 1.15rem; list-style: none; margin: 0; padding: 0; }
+.item {
+  display: grid; grid-template-columns: 3.6rem minmax(0, 1fr) auto; grid-template-areas: "ico title state" "ico desc links";
+  column-gap: 1.4rem; row-gap: .55rem; align-items: center; min-width: 0; padding: 1.65rem 1.9rem; transition: border-color .2s;
+}
 .item:hover { border-color: var(--violet); }
-.item-head { display: flex; align-items: center; gap: .8rem; }
+.item-head { display: contents; }
 .p-ico {
-  flex: none; width: 2.6rem; height: 2.6rem; display: grid; place-items: center; border-radius: 10px; color: #fff;
+  grid-area: ico; align-self: start; width: 3.5rem; height: 3.5rem; display: grid; place-items: center; border-radius: 12px; color: #fff;
   background: linear-gradient(145deg, var(--a1), var(--a2)); box-shadow: inset 0 1px 0 rgba(255, 255, 255, .28);
 }
-.p-ico svg { width: 1.35rem; height: 1.35rem; }
+.p-ico svg { width: 1.6rem; height: 1.6rem; }
 .p-ico.pic { background: none; box-shadow: none; overflow: hidden; }
 .p-ico.pic img { width: 100%; height: 100%; display: block; object-fit: cover; }
-.item-title { flex: 1; min-width: 0; display: grid; }
-.item h3 { font-size: 1.15rem; font-weight: 700; }
+.item-title { grid-area: title; min-width: 0; display: flex; flex-wrap: wrap; align-items: baseline; gap: .1rem .8rem; }
+.item h3 { font-size: 1.25rem; font-weight: 700; }
 .type { font: 600 .68rem var(--f-mono); letter-spacing: .1em; text-transform: uppercase; color: var(--sakura); }
-.state { flex: none; align-self: flex-start; font: 500 .72rem var(--f-mono); color: var(--moon); border: 1px solid currentColor; border-radius: 3px; padding: .1rem .45rem; }
-.item p { color: var(--muted); font-size: .98rem; }
-.links { display: flex; flex-wrap: wrap; gap: .5rem; margin-top: auto; padding-top: .15rem; }
+.state { grid-area: state; justify-self: end; font: 500 .72rem var(--f-mono); color: var(--moon); border: 1px solid currentColor; border-radius: 3px; padding: .1rem .45rem; }
+.item p { grid-area: desc; align-self: start; color: var(--muted); font-size: 1.03rem; max-width: 62ch; }
+.links { grid-area: links; justify-self: end; align-self: end; display: flex; flex-wrap: nowrap; gap: .5rem; }
+@media (max-width: 700px) {
+  .item { grid-template-columns: 2.6rem minmax(0, 1fr) auto; grid-template-areas: "ico title state" "desc desc desc" "links links links"; column-gap: .85rem; padding: 1.3rem 1.25rem 1.4rem; }
+  .p-ico { width: 2.6rem; height: 2.6rem; border-radius: 10px; align-self: center; }
+  .p-ico svg { width: 1.35rem; height: 1.35rem; }
+  .item-title { display: grid; gap: 0; }
+  .item h3 { font-size: 1.15rem; }
+  .state { align-self: start; }
+  .item p { font-size: .98rem; }
+  .links { justify-self: start; flex-wrap: wrap; padding-top: .25rem; }
+}
 .lk {
   display: inline-flex; align-items: center; min-height: 2.15rem; padding: .3rem .8rem; border-radius: var(--radius);
   font: 600 .86rem var(--f-display); color: var(--fg); text-decoration: none;
@@ -270,30 +283,8 @@ a.sec-meta:hover { color: var(--fg); }
 .lk.primary { background: var(--violet); border-color: var(--violet); color: var(--on-accent); }
 .lk.primary:hover { background: var(--fg); border-color: var(--fg); color: var(--on-accent); }
 
-/* Hobbies: a character-profile sheet, two columns of label / favourite rows */
-.sheet {
-  margin: 0; padding: .3rem 1.2rem; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 2rem;
-  background: var(--surface); border: 1px solid var(--line); border-radius: 14px;
-  backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
-}
-.sheet-row { display: flex; align-items: center; gap: .75rem; min-width: 0; padding: .7rem 0; border-bottom: 1px dashed var(--line); }
-.sheet-row:nth-last-child(-n+2) { border-bottom: 0; } /* bottom row of both columns */
-.sheet dt {
-  flex: none; width: 7.25rem; display: flex; align-items: center; gap: .65rem;
-  font: 600 .7rem var(--f-mono); letter-spacing: .12em; text-transform: uppercase; color: var(--muted);
-}
-.sheet-ico { flex: none; width: 1.1rem; height: 1.1rem; color: var(--c, var(--violet)); }
-.sheet-ico svg { display: block; width: 100%; height: 100%; }
-.sheet dd { margin: 0; min-width: 0; font: 600 .98rem/1.35 var(--f-display); }
-.sheet-row.paused dd { color: var(--muted); }
-@media (max-width: 640px) {
-  .sheet { grid-template-columns: minmax(0, 1fr); padding-inline: 1rem; }
-  .sheet-row:nth-last-child(2) { border-bottom: 1px dashed var(--line); }
-  .sheet dt { width: 6.5rem; }
-}
-
 /* Socials: app-style tiles with brand icons */
-.socials { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: .7rem; list-style: none; margin: 0; padding: 0; }
+.socials { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 1rem; list-style: none; margin: 0; padding: 0; }
 @media (max-width: 900px) { .socials { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
 @media (max-width: 480px) { .socials { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 .soc {
@@ -320,7 +311,9 @@ footer a { font: 700 .9rem var(--f-display); text-decoration: none; }
 
 /* ---------- Motion: anime-scene entrances ----------
    Only under html.motion (set in the head once the browser can run the reveal script). The reveal script
-   adds .in as each part scrolls into view, and --d staggers the parts that arrive together. */
+   adds .in as each part scrolls into view and takes it away again once it has left, so every part plays
+   its scene-in in both scroll directions. --d staggers the parts that arrive together, and --dir is -1 for
+   parts coming back in from above, so they drop down into place instead of rising. */
 @keyframes vn-open { 0% { opacity: 0; transform: translateY(28px) scaleY(.9); } 65% { opacity: 1; transform: translateY(-3px) scaleY(1.01); } 100% { opacity: 1; transform: none; } }
 @keyframes tag-pop { 0% { opacity: 0; transform: scale(.4) rotate(-6deg); } 70% { opacity: 1; transform: scale(1.1); } 100% { opacity: 1; transform: none; } }
 @keyframes rise { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
@@ -330,10 +323,11 @@ footer a { font: 700 .9rem var(--f-display); text-decoration: none; }
 @keyframes badge-pop { 40% { transform: scale(1.25); } }
 
 /* intro: the dialogue box opens like a visual-novel text box, then the name tag and the choices */
-html.motion .vn { transform-origin: 50% 100%; animation: vn-open .75s cubic-bezier(.2, .8, .2, 1) .1s both; }
-html.motion .vn-name { animation: tag-pop .5s cubic-bezier(.2, .8, .2, 1) .55s both; }
-html.motion .vn p { animation: rise .5s ease-out .7s both; }
-html.motion .choices a { animation: from-right .5s cubic-bezier(.2, .8, .2, 1) both; animation-delay: calc(.85s + var(--i, 0) * .1s); }
+html.motion .hero:not(.in) :is(.vn, .vn-name, .vn p, .choices a) { opacity: 0; }
+html.motion .hero.in .vn { transform-origin: 50% 100%; animation: vn-open .75s cubic-bezier(.2, .8, .2, 1) .1s both; }
+html.motion .hero.in .vn-name { animation: tag-pop .5s cubic-bezier(.2, .8, .2, 1) .55s both; }
+html.motion .hero.in .vn p { animation: rise .5s ease-out .7s both; }
+html.motion .hero.in .choices a { animation: from-right .5s cubic-bezier(.2, .8, .2, 1) both; animation-delay: calc(.85s + var(--i, 0) * .1s); }
 
 /* section titles: a focus pull, then the title-card line draws out */
 html.motion .sec-head h2 { opacity: 0; filter: blur(10px); transform: scale(1.08); transform-origin: 0 50%;
@@ -349,10 +343,10 @@ html.motion .tl::after { transform: scale(0); transition: transform .45s cubic-b
 html.motion .tl:not(:last-child)::before { transform: scaleY(0); transform-origin: 50% 0; transition: transform .7s cubic-bezier(.65, 0, .35, 1) calc(var(--d, 0s) + .35s); }
 html.motion .tl.in, html.motion .tl.in::after, html.motion .tl.in:not(:last-child)::before { opacity: 1; transform: none; }
 
-/* projects: cards slide in on a slight diagonal, alternating sides, and a light sweeps across each once */
-html.motion .inv > li { opacity: 0; transform: translate(-30px, 22px) rotate(-1.2deg);
+/* projects: rows slide in on a slight diagonal, alternating sides, and a light sweeps across each one */
+html.motion .inv > li { opacity: 0; transform: translate(-56px, calc(var(--dir, 1) * 22px)) rotate(calc(var(--dir, 1) * -.5deg));
   transition: opacity .7s ease-out var(--d, 0s), transform .8s cubic-bezier(.2, .8, .2, 1) var(--d, 0s), border-color .2s; }
-html.motion .inv > li:nth-child(even) { transform: translate(30px, 22px) rotate(1.2deg); }
+html.motion .inv > li:nth-child(even) { transform: translate(56px, calc(var(--dir, 1) * 22px)) rotate(calc(var(--dir, 1) * .5deg)); }
 html.motion .inv > li.in { opacity: 1; transform: none; }
 .inv .item { overflow: hidden; } /* the clipped corners hide the sweep, but only overflow stops it widening the page */
 .inv .item::after {
@@ -362,13 +356,8 @@ html.motion .inv > li.in { opacity: 1; transform: none; }
 html.motion .inv .item.in::after { opacity: 1; animation: shine 1.1s ease-in-out calc(var(--d, 0s) + .45s) both; }
 html.motion .state.pop { animation: badge-pop .5s ease-out; }
 
-/* hobbies: rows drift up and their icons give a little hop */
-html.motion .sheet-row { opacity: 0; transform: translateY(10px); transition: opacity .5s ease-out var(--d, 0s), transform .5s ease-out var(--d, 0s); }
-html.motion .sheet-row.in { opacity: 1; transform: none; }
-html.motion .sheet-row.in .sheet-ico { animation: hop .6s ease-out calc(var(--d, 0s) + .2s) both; }
-
 /* socials: tiles rise in one after another, and the icon hops on hover */
-html.motion .socials > li { opacity: 0; transform: translateY(22px) scale(.94);
+html.motion .socials > li { opacity: 0; transform: translateY(calc(var(--dir, 1) * 22px)) scale(.94);
   transition: opacity .5s ease-out var(--d, 0s), transform .6s cubic-bezier(.3, 1.4, .5, 1) var(--d, 0s); }
 html.motion .socials > li.in { opacity: 1; transform: none; }
 html.motion .soc:hover .ico, html.motion .soc:focus-visible .ico { animation: hop .5s ease-out; }
@@ -395,9 +384,8 @@ html.motion .nav a[aria-current="true"] { background: transparent; }
   <div class="wrap">
     <a class="logo" href="#top" aria-label="lilxcham, back to top"><span class="mark" aria-hidden="true"></span>LILXCHAM</a>
     <nav class="nav" aria-label="Sections">
-      <a href="#experience">Experience</a>
       <a href="#projects">Projects</a>
-      <a href="#hobbies">Hobbies</a>
+      <a href="#experience">Experience</a>
       <a href="#socials">Socials</a>
     </nav>
     <span class="clock" aria-hidden="true"><span id="clockLabel">Night</span> <b id="clock">20:00</b></span>
@@ -419,36 +407,6 @@ html.motion .nav a[aria-current="true"] { background: transparent; }
           <a href="#socials">Contact</a>
         </nav>
       </div>
-    </div>
-  </section>
-
-  <!-- EXPERIENCE -->
-  <section class="block" id="experience" aria-labelledby="exp-title">
-    <div class="wrap">
-      <div class="sec-head"><h2 id="exp-title">Experience</h2><span class="rule" aria-hidden="true"></span><span class="sec-meta">Since 2018</span></div>
-      <ol class="timeline">
-        <li class="tl now">
-          <div class="tl-head">
-            <div class="tl-title"><h3>Customer Support</h3><span class="org">csgogem.com</span></div>
-            <div class="tl-when"><time datetime="2025">2025 – now</time><span class="status active">Current</span></div>
-          </div>
-          <ul class="obj"><li>Help users with their questions and problems.</li></ul>
-        </li>
-        <li class="tl now">
-          <div class="tl-head">
-            <div class="tl-title"><h3>Discord Server Manager</h3><span class="org">YouTube creators</span></div>
-            <div class="tl-when"><time datetime="2018">2018 – now</time><span class="status active">Current</span></div>
-          </div>
-          <ul class="obj"><li>Set up and manage Discord servers for YouTubers.</li><li>Set up bots for moderation and roles.</li></ul>
-        </li>
-        <li class="tl">
-          <div class="tl-head">
-            <div class="tl-title"><h3>Video Editor</h3><span class="org">Local television station</span></div>
-            <div class="tl-when"><span class="dur">1.5 years</span><span class="status cleared">Past</span></div>
-          </div>
-          <ul class="obj"><li>Edited video for TV.</li></ul>
-        </li>
-      </ol>
     </div>
   </section>
 
@@ -513,16 +471,33 @@ html.motion .nav a[aria-current="true"] { background: transparent; }
     </div>
   </section>
 
-  <!-- HOBBIES -->
-  <section class="block" id="hobbies" aria-labelledby="hob-title">
+  <!-- EXPERIENCE -->
+  <section class="block" id="experience" aria-labelledby="exp-title">
     <div class="wrap">
-      <div class="sec-head"><h2 id="hob-title">Hobbies</h2><span class="rule" aria-hidden="true"></span></div>
-      <dl class="sheet">
-        <div class="sheet-row"><dt><span class="sheet-ico" style="--c: var(--sakura)" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M12 3l2.6 5.6 6.1.7-4.5 4.2 1.2 6L12 16.6 6.6 19.5l1.2-6L3.3 9.3l6.1-.7z"/></svg></span>Anime</dt><dd>Naruto</dd></div>
-        <div class="sheet-row"><dt><span class="sheet-ico" style="--c: var(--violet)" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="2" y="7" width="20" height="11" rx="5"/><path d="M7 11v3M5.5 12.5h3"/><circle cx="16" cy="11.5" r="1" fill="currentColor"/><circle cx="18" cy="13.5" r="1" fill="currentColor"/></svg></span>Games</dt><dd>Deadlock, Dota 2</dd></div>
-        <div class="sheet-row"><dt><span class="sheet-ico" style="--c: var(--sakura)" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 18V6l11-2v12"/><circle cx="6.5" cy="18" r="2.5"/><circle cx="17.5" cy="16" r="2.5"/></svg></span>Music</dt><dd>Linkin Park, Evanescence</dd></div>
-        <div class="sheet-row paused"><dt><span class="sheet-ico" style="--c: var(--muted)" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M10 9.5v5l4-2.5z" fill="currentColor"/></svg></span>Editing</dt><dd>Paused for now</dd></div>
-      </dl>
+      <div class="sec-head"><h2 id="exp-title">Experience</h2><span class="rule" aria-hidden="true"></span><span class="sec-meta">Since 2018</span></div>
+      <ol class="timeline">
+        <li class="tl now">
+          <div class="tl-head">
+            <div class="tl-title"><h3>Customer Support</h3><span class="org">csgogem.com</span></div>
+            <div class="tl-when"><time datetime="2025">2025 – now</time><span class="status active">Current</span></div>
+          </div>
+          <ul class="obj"><li>Help users with their questions and problems.</li></ul>
+        </li>
+        <li class="tl now">
+          <div class="tl-head">
+            <div class="tl-title"><h3>Discord Server Manager</h3><span class="org">YouTube creators</span></div>
+            <div class="tl-when"><time datetime="2018">2018 – now</time><span class="status active">Current</span></div>
+          </div>
+          <ul class="obj"><li>Set up and manage Discord servers for YouTubers.</li><li>Set up bots for moderation and roles.</li></ul>
+        </li>
+        <li class="tl">
+          <div class="tl-head">
+            <div class="tl-title"><h3>Video Editor</h3><span class="org">Local television station</span></div>
+            <div class="tl-when"><span class="dur">1.5 years</span><span class="status cleared">Past</span></div>
+          </div>
+          <ul class="obj"><li>Edited video for TV.</li></ul>
+        </li>
+      </ol>
     </div>
   </section>
 
@@ -569,25 +544,64 @@ html.motion .nav a[aria-current="true"] { background: transparent; }
   var reduce = false; // animations always on, whatever the device's reduced-motion setting (the owner's choice)
   var motion = root.classList.contains('motion');
 
-  /* ---------- Entrances: each part plays its scene-in as it scrolls into view ---------- */
+  /* ---------- Entrances: each part plays its scene-in whenever it scrolls into view, either way ---------- */
   root.setAttribute('data-reveal-ready', '');
   if (motion) {
     document.querySelectorAll('.choices a').forEach(function (a, i) { a.style.setProperty('--i', i); });
     var io = new IntersectionObserver(function (entries) {
-      // parts that arrive in the same moment are staggered, counted per group (timeline, card grid, ...)
+      // parts that arrive in the same moment are staggered, counted per group (timeline, project rows, ...)
       var groups = [], counts = [];
       entries.forEach(function (e) {
-        if (!e.isIntersecting) return;
-        var el = e.target, g = groups.indexOf(el.parentNode);
+        var el = e.target;
+        if (!e.isIntersecting) { // gone: reset it, remembering which edge it left by so it can come back the same way
+          el.classList.remove('in');
+          el.style.setProperty('--dir', e.boundingClientRect.top < 0 ? -1 : 1);
+          return;
+        }
+        if (e.intersectionRatio < .12 || el.classList.contains('in')) return;
+        var g = groups.indexOf(el.parentNode);
         if (g < 0) { groups.push(el.parentNode); counts.push(0); g = groups.length - 1; }
         var step = el.classList.contains('tl') ? .8 : .09; // timeline: wait for the rail to reach the next node
         el.style.setProperty('--d', (counts[g]++ * step).toFixed(2) + 's');
         el.classList.add('in');
-        io.unobserve(el);
       });
-    }, { rootMargin: '0px 0px -8% 0px', threshold: .12 });
-    document.querySelectorAll('.sec-head, .tl, .inv > li, .sheet-row, .socials > li').forEach(function (el) { io.observe(el); });
+    }, { rootMargin: '0px 0px -8% 0px', threshold: [0, .12] });
+    document.querySelectorAll('.hero, .sec-head, .tl, .inv > li, .socials > li').forEach(function (el) { io.observe(el); });
   }
+
+  /* ---------- Smooth wheel scrolling: the wheel glides the page instead of jumping ---------- */
+  (function () {
+    if (matchMedia('(pointer: coarse)').matches) return; // touch scrolling already glides
+    var target = scrollY, raf = 0, ours = false;
+    function maxY() { return document.documentElement.scrollHeight - innerHeight; }
+    function canScroll(el, dy) { // let an inner scroll area take the wheel while it still can move that way
+      for (; el && el !== document.body && el !== root; el = el.parentElement) {
+        var oy = getComputedStyle(el).overflowY;
+        if ((oy === 'auto' || oy === 'scroll') && el.scrollHeight > el.clientHeight + 1 &&
+            (dy > 0 ? el.scrollTop + el.clientHeight < el.scrollHeight - 1 : el.scrollTop > 0)) return true;
+      }
+      return false;
+    }
+    function step() {
+      var y = scrollY, next = y + (target - y) * .085;
+      if (Math.abs(target - next) < .6) next = target;
+      ours = true; scrollTo({ top: next, behavior: 'instant' });
+      raf = next === target ? 0 : requestAnimationFrame(step);
+    }
+    addEventListener('wheel', function (e) {
+      if (e.ctrlKey || Math.abs(e.deltaX) > Math.abs(e.deltaY) || canScroll(e.target, e.deltaY)) return;
+      e.preventDefault();
+      var dy = e.deltaY * (e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? innerHeight : 1);
+      if (!raf) target = scrollY;
+      target = Math.max(0, Math.min(maxY(), target + dy));
+      if (!raf) raf = requestAnimationFrame(step);
+    }, { passive: false });
+    // keyboard, scrollbar and anchor-link scrolling stay native: follow them so the next wheel starts from there
+    addEventListener('scroll', function () { if (ours) { ours = false; return; } if (!raf) target = scrollY; }, { passive: true });
+    document.addEventListener('click', function (e) { // a link to a section cancels any glide in progress
+      if (e.target.closest && e.target.closest('a[href^="#"]') && raf) { cancelAnimationFrame(raf); raf = 0; }
+    }, true);
+  })();
 
   function isLight() {
     var th = root.getAttribute('data-theme');

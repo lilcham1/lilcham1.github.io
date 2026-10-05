@@ -39,21 +39,21 @@ body { --stagger: .12; --calm: cubic-bezier(.22, 1, .36, 1); }
 @keyframes vb-blink { 50% { opacity: 0; } }
 
 /* hero: a slow, soft settle */
-html.motion .hero .icon, html.motion .hero h1, html.motion .hero .lead, html.motion .hero .cta, html.motion .hero .meta { animation: vb-in 1.2s var(--calm) both; }
-html.motion .hero h1 { animation-delay: .15s; }
-html.motion .hero .lead { animation-delay: .3s; }
-html.motion .hero .cta { animation-delay: .45s; }
-html.motion .hero .meta { animation-delay: .6s; }
+html.motion .hero.in .icon, html.motion .hero.in h1, html.motion .hero.in .lead, html.motion .hero.in .cta, html.motion .hero.in .meta { animation: vb-in 1.2s var(--calm) both; }
+html.motion .hero.in h1 { animation-delay: .15s; }
+html.motion .hero.in .lead { animation-delay: .3s; }
+html.motion .hero.in .cta { animation-delay: .45s; }
+html.motion .hero.in .meta { animation-delay: .6s; }
 
 /* the example: fades in, then demo.js types each phrase and shows the card the app would draft */
-html.motion .demo { opacity: 0; transform: translateY(20px); transition: opacity 1.2s var(--calm) .5s, transform 1.2s var(--calm) .5s; }
+html.motion .demo { opacity: 0; transform: translateY(calc(var(--dir, 1) * 20px)); transition: opacity 1.2s var(--calm) .5s, transform 1.2s var(--calm) .5s; }
 html.motion .demo.in { opacity: 1; transform: none; }
 html.motion .caret { animation: vb-blink 1s steps(1) infinite; }
 html.motion .demo .draft { opacity: 0; transform: translateY(8px); transition: opacity .6s var(--calm), transform .6s var(--calm); }
 html.motion .demo .draft.show { opacity: 1; transform: none; }
 
 /* cards drift in slowly and their icons draw themselves */
-html.motion .card { opacity: 0; transform: translateY(16px); transition: opacity 1s var(--calm) var(--d, 0s), transform 1.1s var(--calm) var(--d, 0s), border-color .3s; }
+html.motion .card { opacity: 0; transform: translateY(calc(var(--dir, 1) * 16px)); transition: opacity 1s var(--calm) var(--d, 0s), transform 1.1s var(--calm) var(--d, 0s), border-color .3s; }
 html.motion .card.in { opacity: 1; transform: none; }
 html.motion .card h3 svg * { stroke-dasharray: 100; stroke-dashoffset: 100; transition: stroke-dashoffset 1.6s ease-in-out calc(var(--d, 0s) + .3s); }
 html.motion .card.in h3 svg * { stroke-dashoffset: 0; }
@@ -69,7 +69,7 @@ html.motion .note.in::before { transform: none; }
 
 /* everything else settles in gently */
 html.motion section h2, html.motion section .sub, html.motion details, html.motion .final .cta {
-  opacity: 0; transform: translateY(12px); transition: opacity 1.1s var(--calm) var(--d, 0s), transform 1.1s var(--calm) var(--d, 0s);
+  opacity: 0; transform: translateY(calc(var(--dir, 1) * 12px)); transition: opacity 1.1s var(--calm) var(--d, 0s), transform 1.1s var(--calm) var(--d, 0s);
 }
 html.motion section h2.in, html.motion section .sub.in, html.motion details.in, html.motion .final .cta.in { opacity: 1; transform: none; }
 
@@ -79,3 +79,7 @@ html.motion section h2.in, html.motion section .sub.in, html.motion details.in, 
   html.motion details::details-content { block-size: 0; overflow: hidden; opacity: 0; transition: block-size .5s var(--calm), opacity .5s var(--calm), content-visibility .5s allow-discrete; }
   html.motion details[open]::details-content { block-size: auto; opacity: 1; }
 }
+
+/* until the hero is on screen (and again after it has left), its parts wait hidden so the load
+   animation replays each time you come back to the top */
+html.motion .hero:not(.in) :is(.icon, h1, .lead, .cta, .meta) { opacity: 0; }

@@ -18,13 +18,13 @@ body { --stagger: .09; --spring: cubic-bezier(.34, 1.56, .64, 1); }
 }
 
 /* hero: the icon pops like an app opening, the text springs up after it */
-html.motion .hero .icon { animation: dg-pop .7s cubic-bezier(.2, .8, .2, 1) both; }
-html.motion .hero .icon:hover { animation: dg-jiggle .26s ease-in-out infinite; }
-html.motion .hero h1, html.motion .hero .lead, html.motion .hero .cta, html.motion .hero .meta { animation: dg-up .7s var(--spring) both; }
-html.motion .hero h1 { animation-delay: .15s; }
-html.motion .hero .lead { animation-delay: .25s; }
-html.motion .hero .cta { animation-delay: .35s; }
-html.motion .hero .meta { animation-delay: .45s; }
+html.motion .hero.in .icon { animation: dg-pop .7s cubic-bezier(.2, .8, .2, 1) both; }
+html.motion .hero.in .icon:hover { animation: dg-jiggle .26s ease-in-out infinite; }
+html.motion .hero.in h1, html.motion .hero.in .lead, html.motion .hero.in .cta, html.motion .hero.in .meta { animation: dg-up .7s var(--spring) both; }
+html.motion .hero.in h1 { animation-delay: .15s; }
+html.motion .hero.in .lead { animation-delay: .25s; }
+html.motion .hero.in .cta { animation-delay: .35s; }
+html.motion .hero.in .meta { animation-delay: .45s; }
 
 /* sakura petals, behind the hero content */
 .hero { position: relative; overflow: hidden; }
@@ -50,8 +50,8 @@ html.motion .gallery img { opacity: 0; transform: scale(.15); transition: opacit
 html.motion .gallery img.in { opacity: 1; transform: none; }
 html.motion .gallery img.in:first-child { animation: dg-neon 4s ease-in-out 1.2s infinite; }
 @media (min-width: 1000px) {
-  html.motion .gallery img.in:nth-child(1) { transform: rotate(-4deg) translateY(10px); }
-  html.motion .gallery img.in:nth-child(3) { transform: rotate(4deg) translateY(10px); }
+  html.motion .gallery img.in:nth-child(1) { transform: rotate(-4deg) translateY(calc(var(--dir, 1) * 10px)); }
+  html.motion .gallery img.in:nth-child(3) { transform: rotate(4deg) translateY(calc(var(--dir, 1) * 10px)); }
   html.motion .gallery img.in:hover { transform: scale(1.03); }
 }
 
@@ -62,13 +62,13 @@ html.motion .card:hover { border-color: color-mix(in srgb, var(--a) 45%, var(--l
 html.motion .card:hover h3 .ico { animation: dg-jiggle .26s ease-in-out 2; }
 
 /* setup steps tick on, one after another */
-html.motion ol.steps li { opacity: 0; transform: translateY(14px); transition: opacity .4s ease-out var(--d, 0s), transform .6s var(--spring) var(--d, 0s); }
+html.motion ol.steps li { opacity: 0; transform: translateY(calc(var(--dir, 1) * 14px)); transition: opacity .4s ease-out var(--d, 0s), transform .6s var(--spring) var(--d, 0s); }
 html.motion ol.steps li::before { transform: scale(0); transition: transform .5s var(--spring) calc(var(--d, 0s) + .18s); }
 html.motion ol.steps li.in, html.motion ol.steps li.in::before { opacity: 1; transform: none; }
 
 /* everything else springs up */
 html.motion section h2, html.motion section .sub, html.motion details, html.motion .final .cta {
-  opacity: 0; transform: translateY(18px) scale(.98); transition: opacity .45s ease-out var(--d, 0s), transform .65s var(--spring) var(--d, 0s);
+  opacity: 0; transform: translateY(calc(var(--dir, 1) * 18px)) scale(.98); transition: opacity .45s ease-out var(--d, 0s), transform .65s var(--spring) var(--d, 0s);
 }
 html.motion section h2.in, html.motion section .sub.in, html.motion details.in, html.motion .final .cta.in { opacity: 1; transform: none; }
 
@@ -78,3 +78,7 @@ html.motion section h2.in, html.motion section .sub.in, html.motion details.in, 
   html.motion details::details-content { block-size: 0; overflow: hidden; transition: block-size .4s var(--spring), content-visibility .4s allow-discrete; }
   html.motion details[open]::details-content { block-size: auto; }
 }
+
+/* until the hero is on screen (and again after it has left), its parts wait hidden so the load
+   animation replays each time you come back to the top */
+html.motion .hero:not(.in) :is(.icon, h1, .lead, .cta, .meta) { opacity: 0; }

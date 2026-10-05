@@ -16,11 +16,11 @@ body { --stagger: .1; }
 html.motion .logo::after { animation: tt-live 2s ease-out infinite; }
 
 /* hero: the HUD boots, left to right */
-html.motion .hero .icon { animation: tt-flicker .6s linear both; }
-html.motion .hero h1 { animation: tt-wipe .75s cubic-bezier(.7, 0, .3, 1) .15s both; }
-html.motion .hero .lead { animation: tt-wipe .7s cubic-bezier(.7, 0, .3, 1) .45s both; }
-html.motion .hero .cta { animation: tt-flicker .5s linear .75s both; }
-html.motion .hero .meta { animation: tt-flicker .5s linear .9s both; }
+html.motion .hero.in .icon { animation: tt-flicker .6s linear both; }
+html.motion .hero.in h1 { animation: tt-wipe .75s cubic-bezier(.7, 0, .3, 1) .15s both; }
+html.motion .hero.in .lead { animation: tt-wipe .7s cubic-bezier(.7, 0, .3, 1) .45s both; }
+html.motion .hero.in .cta { animation: tt-flicker .5s linear .75s both; }
+html.motion .hero.in .meta { animation: tt-flicker .5s linear .9s both; }
 
 /* the screenshot lies tilted back and flattens as it comes into view; one scanline passes over it */
 .shot { position: relative; perspective: 1400px; }
@@ -42,7 +42,7 @@ html.motion .shot.in::after { animation: tt-scan 1.8s ease-in-out .9s both; }
 html.motion section h2 { opacity: 0; }
 html.motion section h2.in { opacity: 1; animation: tt-wipe .65s cubic-bezier(.7, 0, .3, 1) var(--d, 0s) both; }
 html.motion section .sub, html.motion details, html.motion .note, html.motion .final .cta {
-  opacity: 0; transform: translateY(10px); transition: opacity .5s ease-out var(--d, 0s), transform .5s ease-out var(--d, 0s);
+  opacity: 0; transform: translateY(calc(var(--dir, 1) * 10px)); transition: opacity .5s ease-out var(--d, 0s), transform .5s ease-out var(--d, 0s);
 }
 html.motion section .sub.in, html.motion details.in, html.motion .note.in, html.motion .final .cta.in { opacity: 1; transform: none; }
 
@@ -77,3 +77,7 @@ html.motion .btn:hover::after { transform: skewX(-35deg) scaleX(1); }
   html.motion details::details-content { block-size: 0; overflow: hidden; transition: block-size .3s ease, content-visibility .3s allow-discrete; }
   html.motion details[open]::details-content { block-size: auto; }
 }
+
+/* until the hero is on screen (and again after it has left), its parts wait hidden so the load
+   animation replays each time you come back to the top */
+html.motion .hero:not(.in) :is(.icon, h1, .lead, .cta, .meta) { opacity: 0; }

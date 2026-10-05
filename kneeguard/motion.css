@@ -40,23 +40,23 @@ h2 .shield svg { width: .68em; height: .68em; fill: none; stroke: var(--link); s
 @keyframes kg-ping { from { box-shadow: 0 0 0 0 color-mix(in srgb, var(--a) 65%, transparent); } to { box-shadow: 0 0 0 18px transparent; } }
 
 /* hero plays on load: icon, headline, pill, then the rest */
-html.motion .hero .icon, html.motion .hero h1, html.motion .hero .lead, html.motion .hero .cta, html.motion .hero .meta {
+html.motion .hero.in .icon, html.motion .hero.in h1, html.motion .hero.in .lead, html.motion .hero.in .cta, html.motion .hero.in .meta {
   animation: kg-rise .7s cubic-bezier(.2, .8, .2, 1) both;
 }
-html.motion .hero h1 { animation-delay: .12s; }
-html.motion .hero .lead { animation-delay: .28s; }
-html.motion .hero .cta { animation-delay: .42s; }
-html.motion .hero .meta { animation-delay: .52s; }
-html.motion .pill { animation: kg-wipe .7s cubic-bezier(.65, 0, .35, 1) .7s both; }
+html.motion .hero.in h1 { animation-delay: .12s; }
+html.motion .hero.in .lead { animation-delay: .28s; }
+html.motion .hero.in .cta { animation-delay: .42s; }
+html.motion .hero.in .meta { animation-delay: .52s; }
+html.motion .hero.in .pill { animation: kg-wipe .7s cubic-bezier(.65, 0, .35, 1) .7s both; }
 html.motion .hero::before { animation: kg-drift 14s ease-in-out infinite; }
 
 /* scroll reveals: rise into place, cards one after another */
 html.motion section h2, html.motion section .sub, html.motion .ticks li, html.motion details, html.motion .note, html.motion .final .wrap > * {
-  opacity: 0; transform: translateY(16px);
+  opacity: 0; transform: translateY(calc(var(--dir, 1) * 16px));
   transition: opacity .6s ease-out var(--d, 0s), transform .6s cubic-bezier(.2, .8, .2, 1) var(--d, 0s);
 }
 html.motion .card {
-  opacity: 0; transform: translateY(24px) scale(.97);
+  opacity: 0; transform: translateY(calc(var(--dir, 1) * 24px)) scale(.97);
   transition: opacity .6s ease-out var(--d, 0s), transform .7s cubic-bezier(.2, .8, .2, 1) var(--d, 0s), border-color .25s;
 }
 html.motion .in, html.motion section h2.in, html.motion section .sub.in, html.motion .ticks li.in, html.motion .final .wrap > .in { opacity: 1; transform: none; }
@@ -91,3 +91,8 @@ html.motion details[open] summary::after { content: "+"; transform: rotate(45deg
   html.motion details::details-content { block-size: 0; overflow: hidden; opacity: 0; transition: block-size .35s ease, opacity .35s ease, content-visibility .35s allow-discrete; }
   html.motion details[open]::details-content { block-size: auto; opacity: 1; }
 }
+
+/* until the hero is on screen (and again after it has left), its parts wait hidden so the load
+   animation replays each time you come back to the top */
+html.motion .hero:not(.in) :is(.icon, h1, .lead, .cta, .meta) { opacity: 0; }
+html.motion .hero:not(.in) .pill { background-size: 0% 100%; }

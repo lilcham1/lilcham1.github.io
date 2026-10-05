@@ -17,8 +17,11 @@
 
 // Motion engine shared by the project pages. It only marks things; each page's motion.css decides how
 // they move, so the same engine gives every page its own style.
-//  - Revealed parts get .in as they scroll into view. Parts arriving together are staggered through --d,
-//    counted per parent, with the step taken from the page's --stagger (seconds).
+//  - Revealed parts get .in as they scroll into view and lose it once they have left, so they play again in
+//    both scroll directions. Parts arriving together are staggered through --d, counted per parent, with the
+//    step taken from the page's --stagger (seconds). --dir is -1 for parts that left through the top, so
+//    pages can bring them back down into place when scrolling up.
+//  - The hero itself is revealed too, so its load animation replays when you scroll back to the top.
 //  - Cards get --mx / --my, the pointer position, for cursor-following light.
 //  - [data-scan] strips mark each .chip with .caught while it passes the strip's centre line.
 (function () {
@@ -26,21 +29,27 @@
   root.setAttribute('data-reveal-ready', '');
   if (!root.classList.contains('motion')) return;
 
-  var REVEAL = 'section h2, section .sub, .card, .ticks li, .steps li, details, .note, .gallery img, .shot, .demo, .final .wrap > *, [data-reveal]';
+  var REVEAL = '.hero, section h2, section .sub, .card, .ticks li, .steps li, details, .note, .gallery img, .shot, .demo, .final .wrap > *, [data-reveal]';
   var step = parseFloat(getComputedStyle(document.body).getPropertyValue('--stagger')) || .08;
   var io = new IntersectionObserver(function (entries) {
     var groups = [], counts = [];
     entries.forEach(function (e) {
-      if (!e.isIntersecting) return;
-      var el = e.target, g = groups.indexOf(el.parentNode);
+      var el = e.target;
+      if (!e.isIntersecting) {
+        el.classList.remove('in');
+        el.style.setProperty('--dir', e.boundingClientRect.top < 0 ? -1 : 1);
+        return;
+      }
+      if (e.intersectionRatio < .12 || el.classList.contains('in')) return;
+      var g = groups.indexOf(el.parentNode);
       if (g < 0) { groups.push(el.parentNode); counts.push(0); g = groups.length - 1; }
       el.style.setProperty('--d', (counts[g]++ * step).toFixed(2) + 's');
       el.classList.add('in');
-      io.unobserve(el);
     });
-  }, { rootMargin: '0px 0px -8% 0px', threshold: .12 });
+  }, { rootMargin: '0px 0px -8% 0px', threshold: [0, .12] });
   document.querySelectorAll(REVEAL).forEach(function (el) {
-    if (!el.closest('.hero') || el.matches('.shot, .gallery img, .demo')) io.observe(el); // the hero text plays on load instead
+    // inside the hero only the hero itself and its pictures are revealed; its text plays with the hero
+    if (el.matches('.hero, .shot, .gallery img, .demo') || !el.closest('.hero')) io.observe(el);
   });
 
   document.querySelectorAll('.card').forEach(function (card) {
@@ -70,4 +79,38 @@
       if (running && !was) requestAnimationFrame(tick); // only watch the strip while it is on screen
     }).observe(strip);
   });
+})();
+
+// Smooth wheel scrolling: the wheel glides the page instead of jumping. Touch, keyboard, scrollbar and
+// anchor links stay native; the glide just follows them.
+(function () {
+  if (matchMedia('(pointer: coarse)').matches) return;
+  var root = document.documentElement, target = scrollY, raf = 0, ours = false;
+  function maxY() { return root.scrollHeight - innerHeight; }
+  function canScroll(el, dy) { // let an inner scroll area take the wheel while it still can move that way
+    for (; el && el !== document.body && el !== root; el = el.parentElement) {
+      var oy = getComputedStyle(el).overflowY;
+      if ((oy === 'auto' || oy === 'scroll') && el.scrollHeight > el.clientHeight + 1 &&
+          (dy > 0 ? el.scrollTop + el.clientHeight < el.scrollHeight - 1 : el.scrollTop > 0)) return true;
+    }
+    return false;
+  }
+  function step() {
+    var y = scrollY, next = y + (target - y) * .085;
+    if (Math.abs(target - next) < .6) next = target;
+    ours = true; scrollTo({ top: next, behavior: 'instant' });
+    raf = next === target ? 0 : requestAnimationFrame(step);
+  }
+  addEventListener('wheel', function (e) {
+    if (e.ctrlKey || Math.abs(e.deltaX) > Math.abs(e.deltaY) || canScroll(e.target, e.deltaY)) return;
+    e.preventDefault();
+    var dy = e.deltaY * (e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? innerHeight : 1);
+    if (!raf) target = scrollY;
+    target = Math.max(0, Math.min(maxY(), target + dy));
+    if (!raf) raf = requestAnimationFrame(step);
+  }, { passive: false });
+  addEventListener('scroll', function () { if (ours) { ours = false; return; } if (!raf) target = scrollY; }, { passive: true });
+  document.addEventListener('click', function (e) {
+    if (e.target.closest && e.target.closest('a[href^="#"]') && raf) { cancelAnimationFrame(raf); raf = 0; }
+  }, true);
 })();
