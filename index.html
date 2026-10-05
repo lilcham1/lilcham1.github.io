@@ -45,7 +45,7 @@ if (window.IntersectionObserver) {
    Set over an anime city: dusk fading to night as you scroll, moon, skyline, utility poles. */
 :root {
   --bg: #0b0a16;
-  --surface: rgba(20, 17, 40, 0.74);
+  --surface: rgba(20, 17, 40, 0.84); /* glass panels: solid enough to read without a live blur */
   --surface-2: rgba(40, 33, 76, 0.75);
   --line: rgba(179, 161, 255, 0.24);
   --fg: #efebf9;
@@ -73,7 +73,7 @@ if (window.IntersectionObserver) {
 }
 @media (prefers-color-scheme: light) {
   :root:not([data-theme="dark"]) {
-    --bg: #eef0fa; --surface: rgba(255, 255, 255, 0.86); --surface-2: rgba(228, 230, 247, 0.95);
+    --bg: #eef0fa; --surface: rgba(255, 255, 255, 0.92); --surface-2: rgba(228, 230, 247, 0.95);
     --line: rgba(60, 60, 140, 0.28); --fg: #1b1734; --muted: #44466a; --violet: #5a3ccf; --sakura: #a92a64;
     --moon: #7f5300; --on-accent: #ffffff; --bar: rgba(245, 246, 252, 0.82); --footer-bg: rgba(245, 246, 252, 0.72);
     --sky-bg: linear-gradient(to bottom, #5d93dc 0%, #86b4ea 35%, #b9d3f1 70%, #e4ecf7 100%);
@@ -84,7 +84,7 @@ if (window.IntersectionObserver) {
   }
 }
 :root[data-theme="light"] {
-    --bg: #eef0fa; --surface: rgba(255, 255, 255, 0.86); --surface-2: rgba(228, 230, 247, 0.95);
+    --bg: #eef0fa; --surface: rgba(255, 255, 255, 0.92); --surface-2: rgba(228, 230, 247, 0.95);
     --line: rgba(60, 60, 140, 0.28); --fg: #1b1734; --muted: #44466a; --violet: #5a3ccf; --sakura: #a92a64;
     --moon: #7f5300; --on-accent: #ffffff; --bar: rgba(245, 246, 252, 0.82); --footer-bg: rgba(245, 246, 252, 0.72);
     --sky-bg: linear-gradient(to bottom, #5d93dc 0%, #86b4ea 35%, #b9d3f1 70%, #e4ecf7 100%);
@@ -106,7 +106,7 @@ p { margin: 0; }
 /* Night-city background */
 .sky, .sky-dusk, #sky { position: fixed; inset: 0; pointer-events: none; z-index: 0; }
 .sky { background: var(--sky-bg); }
-.sky-dusk { opacity: calc(1 - var(--ts, 0)); background: var(--sky-dusk); }
+.sky-dusk { background: var(--sky-dusk); } /* opacity follows the scroll spring, set by the sky script */
 #sky { width: 100%; height: 100%; }
 .page { position: relative; z-index: 1; }
 
@@ -163,7 +163,6 @@ p { margin: 0; }
 /* Glass card with clipped HUD corners */
 .card {
   position: relative; background: var(--surface); border: 1px solid var(--line);
-  backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
   clip-path: polygon(0 0, calc(100% - var(--cut)) 0, 100% var(--cut), 100% 100%, var(--cut) 100%, 0 calc(100% - var(--cut)));
 }
 .card::before { /* border line along the two clipped corners */
@@ -218,7 +217,6 @@ a.sec-meta:hover { color: var(--fg); }
   --tl-gap: 1.7rem;
   list-style: none; margin: 0; padding: 1.6rem 1.9rem; display: grid; gap: var(--tl-gap);
   background: var(--surface); border: 1px solid var(--line); border-radius: 16px;
-  backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
 }
 .tl { position: relative; padding-left: 1.75rem; }
 .tl::after { /* the node */
@@ -291,7 +289,7 @@ a.sec-meta:hover { color: var(--fg); }
   --brand: var(--violet); --brand-ink: #ffffff;
   width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; gap: .3rem; text-align: center;
   padding: .8rem .5rem .7rem; border-radius: 16px; cursor: pointer; text-decoration: none; font: inherit; color: var(--fg);
-  background: var(--surface); border: 1px solid var(--line); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+  background: var(--surface); border: 1px solid var(--line);
   transition: border-color .2s, transform .2s;
 }
 .soc .ico { width: 2.5rem; height: 2.5rem; border-radius: 12px; display: grid; place-items: center; color: var(--brand); background: color-mix(in srgb, var(--brand) 16%, transparent); transition: background .2s, color .2s; }
@@ -653,15 +651,18 @@ html.motion .nav a[aria-current="true"] { background: transparent; }
   function onScroll() {
     var max = Math.max(1, document.documentElement.scrollHeight - innerHeight);
     var t = Math.min(1, Math.max(0, scrollY / max)), day = isLight();
-    clockLabel.textContent = day ? 'Day' : 'Night';
+    var label = day ? 'Day' : 'Night';
     var mins = (day ? 7 : 20) * 60 + Math.round(t * 8 * 60), h = Math.floor(mins / 60) % 24, m = mins % 60;
-    clock.textContent = (h < 10 ? '0' : '') + h + ':' + (m < 10 ? '0' : '') + m;
+    var time = (h < 10 ? '0' : '') + h + ':' + (m < 10 ? '0' : '') + m;
+    // only touch the text when it changes: rewriting it on every scroll event re-lays out the bar
+    if (label !== clockLabel.textContent) clockLabel.textContent = label;
+    if (time !== clock.textContent) clock.textContent = time;
   }
   addEventListener('scroll', onScroll, { passive: true }); onScroll();
 
   /* ---------- Sky canvas: anime city — moon, clouds, skyline, utility poles, petals (night or day palette) ---------- */
-  var cv = document.getElementById('sky'), ctx = cv.getContext('2d');
-  var W, H, dpr = Math.min(devicePixelRatio || 1, 2), stars = [], petals = [], clouds = [], shoot = null, layers = [], ts = -1, tv = 0, lastT = 0;
+  var cv = document.getElementById('sky'), ctx = cv.getContext('2d'), dusk = document.querySelector('.sky-dusk'), lastDusk = -1;
+  var W, H, dpr = Math.min(devicePixelRatio || 1, 1.5), stars = [], petals = [], clouds = [], shoot = null, layers = [], ts = -1, tv = 0, lastT = 0;
   var PAD = 120; // extra width so layers can slide sideways with scroll
   var light = false;
   function rnd(a, b) { return a + Math.random() * (b - a); }
@@ -722,6 +723,26 @@ html.motion .nav a[aria-current="true"] { background: transparent; }
     return { c: c, w: w, h: h };
   }
 
+  // The moon's glow and its softly shadowed disc are painted once into small canvases and then just
+  // copied each frame: a canvas shadow blur is one of the most expensive things to draw every frame.
+  var moon = null;
+  function makeMoon() {
+    var R = Math.max(38, Math.min(W, H) * .1), gs = R * 10, half = R * 1.9;
+    var glow = document.createElement('canvas'); glow.width = glow.height = Math.ceil(gs * dpr);
+    var g = glow.getContext('2d'); g.setTransform(dpr, 0, 0, dpr, 0, 0);
+    var gr = g.createRadialGradient(R * 5, R * 5, R * .9, R * 5, R * 5, R * 5);
+    if (light) { gr.addColorStop(0, 'rgba(255,246,210,.7)'); gr.addColorStop(.3, 'rgba(255,230,170,.28)'); gr.addColorStop(1, 'rgba(255,230,170,0)'); }
+    else { gr.addColorStop(0, 'rgba(250,240,215,.3)'); gr.addColorStop(.25, 'rgba(220,200,255,.14)'); gr.addColorStop(.6, 'rgba(180,162,255,.05)'); gr.addColorStop(1, 'rgba(180,162,255,0)'); }
+    g.fillStyle = gr; g.beginPath(); g.arc(R * 5, R * 5, R * 5, 0, 6.28); g.fill();
+    var body = document.createElement('canvas'); body.width = body.height = Math.ceil(half * 2 * dpr);
+    var b = body.getContext('2d'); b.setTransform(dpr, 0, 0, dpr, 0, 0);
+    var mg = b.createRadialGradient(half - R * .25, half - R * .25, 0, half, half, R);
+    if (light) { mg.addColorStop(0, '#ffffff'); mg.addColorStop(.6, '#fff6d8'); mg.addColorStop(1, '#ffe39a'); }
+    else { mg.addColorStop(0, '#fffdf7'); mg.addColorStop(.55, '#fcf5e3'); mg.addColorStop(.85, '#f6ead0'); mg.addColorStop(1, '#efe1c2'); }
+    b.shadowColor = 'rgba(255,246,222,.85)'; b.shadowBlur = R * .7 * dpr;
+    b.fillStyle = mg; b.beginPath(); b.arc(half, half, R, 0, 6.28); b.fill();
+    moon = { R: R, glow: glow, body: body, half: half };
+  }
   function size() {
     W = innerWidth; H = innerHeight; cv.width = W * dpr; cv.height = H * dpr; ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     if (!W || !H) { layers = []; stars = []; clouds = []; return; } // no size yet: build once the window has one
@@ -738,6 +759,7 @@ html.motion .nav a[aria-current="true"] { background: transparent; }
       { l: makeLayer(.08, .2, fills[2], .6, small ? 3 : 4, true), px: 90 },
       { l: makeWires(), px: 120 }
     ];
+    makeMoon();
   }
   function petal(any) {
     return { x: Math.random() * W, y: any ? Math.random() * H : -10, s: 4 + Math.random() * 4, vy: .3 + Math.random() * .4, vx: .2 + Math.random() * .35,
@@ -765,7 +787,10 @@ html.motion .nav a[aria-current="true"] { background: transparent; }
       }
       if (Math.abs(target - ts) < 1e-5 && Math.abs(tv) < 1e-5) { ts = target; tv = 0; }
     }
-    root.style.setProperty('--ts', ts.toFixed(5));
+    // the dusk tint fades out with the same spring; written to its own element, and only when it
+    // visibly changes, so the rest of the page isn't re-styled every frame
+    var dop = Math.round((1 - ts) * 500) / 500;
+    if (dop !== lastDusk) { lastDusk = dop; dusk.style.opacity = dop; }
     var t = ts;
     ctx.clearRect(0, 0, W, H);
     // stars (night only)
@@ -775,26 +800,13 @@ html.motion .nav a[aria-current="true"] { background: transparent; }
       ctx.globalAlpha = Math.min(1, .45 + Math.sin(s.p) * .3 + t * .2) * ip;
       ctx.beginPath(); ctx.arc(s.x, s.y, s.r, 0, 6.28); ctx.fill();
     }
-    // moon
-    var R = Math.max(38, Math.min(W, H) * .1), mx = W * (W < 700 ? .8 : .85), my = H * .2 + t * H * .12 + (1 - ip) * H * .3;
-    ctx.globalAlpha = 1;
+    // moon: drawn from sprites made once in makeMoon(); the glow breathes through its opacity
+    var R = moon.R, mx = W * (W < 700 ? .8 : .85), my = H * .2 + t * H * .12 + (1 - ip) * H * .3;
     var breathe = reduce ? 0 : Math.sin(now * .5) * .05;
-    var glow = ctx.createRadialGradient(mx, my, R * .9, mx, my, R * 5);
-    if (light) { // soft daytime moon
-      glow.addColorStop(0, 'rgba(255,246,210,' + (.7 + breathe).toFixed(3) + ')');
-      glow.addColorStop(.3, 'rgba(255,230,170,' + (.28 + breathe / 2).toFixed(3) + ')');
-      glow.addColorStop(1, 'rgba(255,230,170,0)');
-    } else {
-      glow.addColorStop(0, 'rgba(250,240,215,' + (.3 + breathe).toFixed(3) + ')');
-      glow.addColorStop(.25, 'rgba(220,200,255,' + (.14 + breathe / 2).toFixed(3) + ')');
-      glow.addColorStop(.6, 'rgba(180,162,255,.05)'); glow.addColorStop(1, 'rgba(180,162,255,0)');
-    }
-    ctx.fillStyle = glow; ctx.beginPath(); ctx.arc(mx, my, R * 5, 0, 6.28); ctx.fill();
-    var mg = ctx.createRadialGradient(mx - R * .25, my - R * .25, 0, mx, my, R);
-    if (light) { mg.addColorStop(0, '#ffffff'); mg.addColorStop(.6, '#fff6d8'); mg.addColorStop(1, '#ffe39a'); }
-    else { mg.addColorStop(0, '#fffdf7'); mg.addColorStop(.55, '#fcf5e3'); mg.addColorStop(.85, '#f6ead0'); mg.addColorStop(1, '#efe1c2'); }
-    ctx.save(); ctx.shadowColor = 'rgba(255,246,222,.85)'; ctx.shadowBlur = R * .7;
-    ctx.fillStyle = mg; ctx.beginPath(); ctx.arc(mx, my, R, 0, 6.28); ctx.fill(); ctx.restore();
+    ctx.globalAlpha = Math.max(0, 1 + breathe * 3.3);
+    ctx.drawImage(moon.glow, mx - R * 5, my - R * 5, R * 10, R * 10);
+    ctx.globalAlpha = 1;
+    ctx.drawImage(moon.body, mx - moon.half, my - moon.half, moon.half * 2, moon.half * 2);
     // clouds: long thin streaks lit from below by the city
     for (var c = 0; c < clouds.length; c++) {
       var k = clouds[c]; if (!reduce) { k.x += k.v; if (k.x - k.w / 2 > W) k.x = -k.w / 2; }
@@ -858,7 +870,8 @@ html.motion .nav a[aria-current="true"] { background: transparent; }
     ctx.globalAlpha = 1;
   }
   function safeDraw() { try { draw(); } catch (e) { /* the background is decoration: skip this frame */ } }
-  function loop() { safeDraw(); requestAnimationFrame(loop); }
+  var lastFrame = 0; // draw at most ~60 times a second, even on 120/144 Hz screens
+  function loop(n) { if (!n || n - lastFrame >= 15.5) { lastFrame = n || 0; safeDraw(); } requestAnimationFrame(loop); }
   size();
   for (var i = 0; i < (W < 600 ? 9 : 18); i++) petals.push(petal(true));
   if (reduce) { safeDraw(); addEventListener('scroll', safeDraw, { passive: true }); } else loop();
@@ -911,8 +924,11 @@ html.motion .nav a[aria-current="true"] { background: transparent; }
     navLinks.forEach(function (a) {
       if (a.hash === '#' + id) a.setAttribute('aria-current', 'true'); else a.removeAttribute('aria-current');
     });
+    currentId = id;
     moveInd();
   }
+  // the highlight is worked out at most once per frame, and only touched when the section changes
+  var currentId = null, navQueued = false;
   function syncNav() {
     if (performance.now() < lockUntil) return;
     var id = '', line = innerHeight * .45;
@@ -921,11 +937,16 @@ html.motion .nav a[aria-current="true"] { background: transparent; }
     } else {
       sections.forEach(function (s) { if (s && s.getBoundingClientRect().top <= line) id = s.id; });
     }
-    markNav(id);
+    if (id !== currentId) markNav(id);
+  }
+  function queueNav() {
+    if (navQueued) return;
+    navQueued = true;
+    requestAnimationFrame(function () { navQueued = false; syncNav(); });
   }
   addEventListener('scroll', function () {
     if (performance.now() < lockUntil) { lockUntil = performance.now() + 200; return; } // still travelling to a clicked section
-    syncNav();
+    queueNav();
   }, { passive: true });
   addEventListener('resize', function () { syncNav(); moveInd(); });
   // a click on a link to a section wins over the scroll position until the visitor scrolls again
@@ -937,7 +958,8 @@ html.motion .nav a[aria-current="true"] { background: transparent; }
     lockUntil = performance.now() + 600;
   });
   syncNav();
-  if (document.fonts) document.fonts.ready.then(moveInd); // link widths change once the web fonts arrive
+  addEventListener('load', syncNav);
+  if (document.fonts) document.fonts.ready.then(function () { syncNav(); moveInd(); }); // fonts change link widths and section heights
 
   /* ---------- Release versions: read the latest tag from GitHub (live site only, cached per visit) ---------- */
   if (/(github\.io|lilxcham\.com)$/.test(location.hostname) && window.fetch) {
