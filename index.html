@@ -108,6 +108,13 @@ p { margin: 0; }
 .sky { background: var(--sky-bg); }
 .sky-dusk { background: var(--sky-dusk); } /* opacity follows the scroll spring, set by the sky script */
 #sky { width: 100%; height: 100%; }
+/* the sky's pre-painted pieces, built by the sky script and slid into place with transforms */
+.sky-el { position: fixed; left: 0; top: 0; pointer-events: none; z-index: 0; will-change: transform; }
+.sky-el > canvas { position: absolute; left: 0; top: 0; display: block; }
+.sky-moon { width: 0; height: 0; }
+.sky-haze { top: auto; bottom: 0; width: 100%; height: 30%; will-change: auto; background: linear-gradient(rgba(11, 10, 22, 0), rgba(11, 10, 22, .55)); }
+:root[data-theme="light"] .sky-haze { background: linear-gradient(rgba(228, 236, 247, 0), rgba(228, 236, 247, .55)); }
+@media (prefers-color-scheme: light) { :root:not([data-theme="dark"]) .sky-haze { background: linear-gradient(rgba(228, 236, 247, 0), rgba(228, 236, 247, .55)); } }
 .page { position: relative; z-index: 1; }
 
 .skip {
@@ -567,7 +574,6 @@ html.motion .nav a[aria-current="true"] { background: transparent; }
 <script>
 (function () {
   var root = document.documentElement;
-  var reduce = false; // animations always on, whatever the device's reduced-motion setting (the owner's choice)
   var motion = root.classList.contains('motion');
 
   /* ---------- Entrances: each part plays its scene-in whenever it scrolls into view, either way ---------- */
@@ -624,7 +630,7 @@ html.motion .nav a[aria-current="true"] { background: transparent; }
     function step(n) {
       // ease toward the target by elapsed time, not per frame, so the glide feels the same at any refresh rate
       var dt = lastStep && n ? Math.min(.05, (n - lastStep) / 1000) : 1 / 60; lastStep = n || 0;
-      var y = scrollY, next = y + (target - y) * (1 - Math.pow(1 - .085, dt * 60));
+      var y = scrollY, next = y + (target - y) * (1 - Math.pow(1 - .16, dt * 60));
       if (Math.abs(target - next) < .6) next = target;
       ours = true; scrollTo({ top: next, behavior: 'instant' });
       raf = next === target ? 0 : requestAnimationFrame(step);
@@ -664,17 +670,28 @@ html.motion .nav a[aria-current="true"] { background: transparent; }
   }
   addEventListener('scroll', onScroll, { passive: true }); onScroll();
 
-  /* ---------- Sky canvas: anime city — moon, clouds, skyline, utility poles, petals (night or day palette) ---------- */
+  /* ---------- Sky: anime city — moon, clouds, skyline, utility poles, petals (night or day palette) ----------
+     Built so that scrolling costs almost nothing to draw. The skyline layers, poles and moon are painted once
+     into their own canvases and then only slid into place (a transform the graphics card applies without
+     repainting), on every screen refresh, so they keep pace with the page even at 240 Hz. Only the small
+     moving details repaint: stars (behind the moon), clouds (in front of it) and petals up to ~60 times a
+     second, and the windows' flicker and rooftop beacons ~20 times a second on a thin overlay per layer. */
   var cv = document.getElementById('sky'), ctx = cv.getContext('2d'), dusk = document.querySelector('.sky-dusk'), lastDusk = -1;
   var W, H, dpr = Math.min(devicePixelRatio || 1, 1.5), stars = [], petals = [], clouds = [], shoot = null, layers = [], ts = -1, tv = 0, lastT = 0;
   var PAD = 120; // extra width so layers can slide sideways with scroll
-  var light = false;
+  var light = false, els = [], moon = null, cloudCtx = null, frontCtx = null;
   function rnd(a, b) { return a + Math.random() * (b - a); }
+  function canvasEl(w, h, cls) {
+    var c = document.createElement('canvas');
+    c.width = Math.ceil(w * dpr); c.height = Math.ceil(h * dpr);
+    c.style.width = w + 'px'; c.style.height = h + 'px';
+    if (cls) c.className = cls;
+    var g = c.getContext('2d'); g.setTransform(dpr, 0, 0, dpr, 0, 0);
+    return { c: c, g: g };
+  }
 
   function makeLayer(minH, maxH, fill, winAlpha, winSize, detail) {
-    var c = document.createElement('canvas'), w = W + PAD, h = Math.ceil(H * maxH) + 60;
-    c.width = w * dpr; c.height = h * dpr;
-    var g = c.getContext('2d'); g.setTransform(dpr, 0, 0, dpr, 0, 0);
+    var w = W + PAD, h = Math.ceil(H * maxH) + 60, base = canvasEl(w, h), g = base.g;
     var x = -10, cols = light ? ['36,46,88', '44,56,104', '30,38,74', '52,64,112'] : ['255,214,160', '245,174,202', '180,162,255', '255,236,200'], live = [], beacons = [];
     if (light) winAlpha *= .75; // daytime: windows read as darker glass, not lights
     while (x < w) {
@@ -701,13 +718,14 @@ html.motion .nav a[aria-current="true"] { background: transparent; }
       }
       x += bw + rnd(-4, 6);
     }
-    return { c: c, w: w, h: h, live: live, beacons: beacons };
+    var wrap = document.createElement('div'); wrap.className = 'sky-el'; wrap.appendChild(base.c);
+    var lights = null;
+    if (live.length || beacons.length) { lights = canvasEl(w, h); wrap.appendChild(lights.c); }
+    return { el: wrap, w: w, h: h, live: live, beacons: beacons, lights: lights };
   }
 
   function makeWires() { // foreground utility poles with sagging wires
-    var c = document.createElement('canvas'), w = W + PAD, h = H;
-    c.width = w * dpr; c.height = h * dpr;
-    var g = c.getContext('2d'); g.setTransform(dpr, 0, 0, dpr, 0, 0);
+    var w = W + PAD, h = H, cnv = canvasEl(w, h), g = cnv.g;
     var col = light ? '#3d4466' : '#06050d', poles = [w * .1, w * .86], ph = Math.min(H * .62, 620), topY = h - ph;
     g.fillStyle = col;
     poles.forEach(function (px) {
@@ -724,32 +742,36 @@ html.motion .nav a[aria-current="true"] { background: transparent; }
       g.beginPath(); g.moveTo(-20, y + sag * .6); g.quadraticCurveTo(a / 2, y + sag * .5, a, y); g.stroke();
       g.beginPath(); g.moveTo(b, y); g.quadraticCurveTo((b + w) / 2, y + sag * .5, w + 20, y + sag * .6); g.stroke();
     }
-    return { c: c, w: w, h: h };
+    var wrap = document.createElement('div'); wrap.className = 'sky-el'; wrap.appendChild(cnv.c);
+    return { el: wrap, w: w, h: h };
   }
 
-  // The moon's glow and its softly shadowed disc are painted once into small canvases and then just
-  // copied each frame: a canvas shadow blur is one of the most expensive things to draw every frame.
-  var moon = null;
+  // the moon: its glow and softly shadowed disc are painted once; the glow breathes through its opacity
   function makeMoon() {
-    var R = Math.max(38, Math.min(W, H) * .1), gs = R * 10, half = R * 1.9;
-    var glow = document.createElement('canvas'); glow.width = glow.height = Math.ceil(gs * dpr);
-    var g = glow.getContext('2d'); g.setTransform(dpr, 0, 0, dpr, 0, 0);
+    var R = Math.max(38, Math.min(W, H) * .1), half = R * 1.9;
+    var glow = canvasEl(R * 10, R * 10), g = glow.g;
     var gr = g.createRadialGradient(R * 5, R * 5, R * .9, R * 5, R * 5, R * 5);
     if (light) { gr.addColorStop(0, 'rgba(255,246,210,.7)'); gr.addColorStop(.3, 'rgba(255,230,170,.28)'); gr.addColorStop(1, 'rgba(255,230,170,0)'); }
     else { gr.addColorStop(0, 'rgba(250,240,215,.3)'); gr.addColorStop(.25, 'rgba(220,200,255,.14)'); gr.addColorStop(.6, 'rgba(180,162,255,.05)'); gr.addColorStop(1, 'rgba(180,162,255,0)'); }
     g.fillStyle = gr; g.beginPath(); g.arc(R * 5, R * 5, R * 5, 0, 6.28); g.fill();
-    var body = document.createElement('canvas'); body.width = body.height = Math.ceil(half * 2 * dpr);
-    var b = body.getContext('2d'); b.setTransform(dpr, 0, 0, dpr, 0, 0);
+    var body = canvasEl(half * 2, half * 2), b = body.g;
     var mg = b.createRadialGradient(half - R * .25, half - R * .25, 0, half, half, R);
     if (light) { mg.addColorStop(0, '#ffffff'); mg.addColorStop(.6, '#fff6d8'); mg.addColorStop(1, '#ffe39a'); }
     else { mg.addColorStop(0, '#fffdf7'); mg.addColorStop(.55, '#fcf5e3'); mg.addColorStop(.85, '#f6ead0'); mg.addColorStop(1, '#efe1c2'); }
     b.shadowColor = 'rgba(255,246,222,.85)'; b.shadowBlur = R * .7 * dpr;
     b.fillStyle = mg; b.beginPath(); b.arc(half, half, R, 0, 6.28); b.fill();
-    moon = { R: R, glow: glow, body: body, half: half };
+    glow.c.style.left = glow.c.style.top = (-R * 5) + 'px';
+    body.c.style.left = body.c.style.top = (-half) + 'px';
+    var wrap = document.createElement('div'); wrap.className = 'sky-el sky-moon';
+    wrap.appendChild(glow.c); wrap.appendChild(body.c);
+    moon = { R: R, el: wrap, glow: glow.c };
   }
+
+  var lastPos = null, lastPaint = 0, lastPaintT = 0, lastLights = 0, skyBusy = true;
   function size() {
     W = innerWidth; H = innerHeight; cv.width = W * dpr; cv.height = H * dpr; ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    if (!W || !H) { layers = []; stars = []; clouds = []; return; } // no size yet: build once the window has one
+    els.forEach(function (e) { e.remove(); }); els = []; layers = []; moon = null;
+    if (!W || !H) { stars = []; clouds = []; return; } // no size yet: build once the window has one
     stars = []; var n = Math.round(W * H / 7000);
     for (var i = 0; i < n; i++) stars.push({ x: Math.random() * W, y: Math.random() * H * .7, r: Math.random() * 1.1 + .2, p: Math.random() * 6.28, s: .004 + Math.random() * .015 });
     clouds = [];
@@ -757,13 +779,21 @@ html.motion .nav a[aria-current="true"] { background: transparent; }
     var small = W < 600;
     light = isLight();
     var fills = light ? ['#a9bfe2', '#7f97c7', '#55679a'] : ['#1f1840', '#141030', '#0b0919'];
+    makeMoon();
+    var cl = canvasEl(W, H, 'sky-el'); cloudCtx = cl.g;
     layers = [
       { l: makeLayer(.26, .42, fills[0], .22, 2, false), px: 20 },
       { l: makeLayer(.16, .32, fills[1], .42, small ? 2 : 3, true), px: 50 },
       { l: makeLayer(.08, .2, fills[2], .6, small ? 3 : 4, true), px: 90 },
       { l: makeWires(), px: 120 }
     ];
-    makeMoon();
+    var haze = document.createElement('div'); haze.className = 'sky-el sky-haze';
+    var fr = canvasEl(W, H, 'sky-el'); frontCtx = fr.g;
+    // stacking order, back to front: stars (#sky), moon, clouds, skyline layers, poles, haze, petals
+    els = [moon.el, cl.c].concat(layers.map(function (ly) { return ly.l.el; }), [haze, fr.c]);
+    var after = cv;
+    els.forEach(function (e) { after.after(e); after = e; });
+    lastPos = null; lastPaint = 0; lastLights = 0;
   }
   function petal(any) {
     return { x: Math.random() * W, y: any ? Math.random() * H : -10, s: 4 + Math.random() * 4, vy: .3 + Math.random() * .4, vx: .2 + Math.random() * .35,
@@ -773,16 +803,16 @@ html.motion .nav a[aria-current="true"] { background: transparent; }
   // back, the stars fade in, and one shooting star crosses the sky
   var introT0 = motion ? performance.now() : -1e9, introShot = !motion;
   function easeOut(x) { x = Math.min(1, Math.max(0, x)); return 1 - Math.pow(1 - x, 3); }
-  function draw() {
-    if (!W || !H) { if (innerWidth && innerHeight) size(); else return; }
+
+  function frame(n) {
+    if (!W || !H || !moon) { if (innerWidth && innerHeight) size(); if (!moon) return; }
     var now = performance.now() / 1000, dt = Math.min(.1, lastT ? now - lastT : .016); lastT = now;
-    var f = dt * 60; // per-frame steps below are scaled by this, so motion speed doesn't depend on the screen's refresh rate
     var since = (performance.now() - introT0) / 1000, ip = easeOut((since - .7) / 2.2);
     var max = Math.max(1, document.documentElement.scrollHeight - innerHeight);
     var target = Math.min(1, Math.max(0, scrollY / max));
     // critically damped spring toward the scroll position: the moon, skyline and dusk ease in and out
     // of every scroll instead of jumping to full speed, and never overshoot
-    if (ts < 0 || reduce) { ts = target; tv = 0; }
+    if (ts < 0) { ts = target; tv = 0; }
     else {
       var K = 9, C = 2 * Math.sqrt(K); // stiffness, damping
       for (var step = dt; step > 0; step -= 1 / 120) { // small fixed steps keep it stable on slow frames
@@ -792,99 +822,104 @@ html.motion .nav a[aria-current="true"] { background: transparent; }
       }
       if (Math.abs(target - ts) < 1e-5 && Math.abs(tv) < 1e-5) { ts = target; tv = 0; }
     }
-    // the dusk tint fades out with the same spring; written to its own element, and only when it
-    // visibly changes, so the rest of the page isn't re-styled every frame
-    skyBusy = tv !== 0 || since < 3.4 || !!shoot;
+    var t = ts;
+    skyBusy = tv !== 0 || since < 3.4;
+    // the dusk tint fades out with the same spring, written only when it visibly changes
     var dop = Math.round((1 - ts) * 500) / 500;
     if (dop !== lastDusk) { lastDusk = dop; dusk.style.opacity = dop; }
-    var t = ts;
-    ctx.clearRect(0, 0, W, H);
-    // stars (night only)
-    ctx.fillStyle = '#efebf9';
-    if (!light) for (var i = 0; i < stars.length; i++) {
-      var s = stars[i]; if (!reduce) s.p += s.s * f;
-      ctx.globalAlpha = Math.min(1, .45 + Math.sin(s.p) * .3 + t * .2) * ip;
-      ctx.beginPath(); ctx.arc(s.x, s.y, s.r, 0, 6.28); ctx.fill();
+
+    // 1. slide the pre-painted layers: every refresh while anything moves, nothing at all when it's still
+    if (skyBusy || !lastPos) {
+      var mx = W * (W < 700 ? .8 : .85), my = H * .2 + t * H * .12 + (1 - ip) * H * .3;
+      moon.el.style.transform = 'translate3d(' + mx.toFixed(1) + 'px,' + my.toFixed(1) + 'px,0)';
+      for (var L = 0; L < layers.length; L++) {
+        var ly = layers[L], ox = -t * ly.px, oy = H - ly.l.h + (1 - easeOut((since - .7 - L * .12) / 1.8)) * (50 + L * 35);
+        ly.l.el.style.transform = 'translate3d(' + ox.toFixed(1) + 'px,' + oy.toFixed(1) + 'px,0)';
+      }
+      lastPos = true;
     }
-    // moon: drawn from sprites made once in makeMoon(); the glow breathes through its opacity
-    var R = moon.R, mx = W * (W < 700 ? .8 : .85), my = H * .2 + t * H * .12 + (1 - ip) * H * .3;
-    var breathe = reduce ? 0 : Math.sin(now * .5) * .05;
-    ctx.globalAlpha = Math.max(0, 1 + breathe * 3.3);
-    ctx.drawImage(moon.glow, mx - R * 5, my - R * 5, R * 10, R * 10);
-    ctx.globalAlpha = 1;
-    ctx.drawImage(moon.body, mx - moon.half, my - moon.half, moon.half * 2, moon.half * 2);
-    // clouds: long thin streaks lit from below by the city
-    for (var c = 0; c < clouds.length; c++) {
-      var k = clouds[c]; if (!reduce) { k.x += k.v * f; if (k.x - k.w / 2 > W) k.x = -k.w / 2; }
-      var cg = ctx.createLinearGradient(0, k.y - k.h, 0, k.y + k.h);
-      if (light) { cg.addColorStop(0, 'rgba(255,255,255,0)'); cg.addColorStop(.45, 'rgba(255,255,255,.95)'); cg.addColorStop(1, 'rgba(170,190,230,.6)'); }
-      else { cg.addColorStop(0, 'rgba(58,44,104,0)'); cg.addColorStop(.5, 'rgba(58,44,104,.55)'); cg.addColorStop(1, 'rgba(245,174,202,.18)'); }
-      ctx.fillStyle = cg; ctx.beginPath(); ctx.ellipse(k.x, k.y, k.w / 2, k.h, 0, 0, 6.28); ctx.fill();
-    }
-    // skyline layers + poles, sliding sideways as you scroll
-    for (var L = 0; L < layers.length; L++) {
-      var ly = layers[L];
-      var ox = -t * ly.px, oy = H - ly.l.h + (1 - easeOut((since - .7 - L * .12) / 1.8)) * (50 + L * 35);
-      if (!ly.l.c.width || !ly.l.c.height) continue;
-      ctx.drawImage(ly.l.c, ox, oy, ly.l.w, ly.l.h);
-      if (ly.l.live) for (var q = 0; q < ly.l.live.length; q++) {
-        var wn = ly.l.live[q];
-        if (!reduce) {
-          wn.p += wn.s * f;
-          if (wn.off > 0) wn.off -= f; else if (Math.random() < .0006 * f) wn.off = 120 + Math.random() * 400;
+
+    // 2. repaint the small moving details, at most ~60 times a second (they don't follow the scroll)
+    if (!n || n - lastPaint >= 15.5) {
+      var pf = Math.min(6, lastPaintT ? (now - lastPaintT) * 60 : 1); lastPaint = n || 0; lastPaintT = now; // per-step speed, by elapsed time
+      // stars (night only)
+      ctx.clearRect(0, 0, W, H);
+      if (!light) {
+        ctx.fillStyle = '#efebf9';
+        for (var i = 0; i < stars.length; i++) {
+          var s = stars[i]; s.p += s.s * pf;
+          ctx.globalAlpha = Math.min(1, .45 + Math.sin(s.p) * .3 + t * .2) * ip;
+          ctx.beginPath(); ctx.arc(s.x, s.y, s.r, 0, 6.28); ctx.fill();
         }
-        if (wn.off > 0) continue;
-        ctx.globalAlpha = wn.a * (.45 + .55 * (.5 + .5 * Math.sin(wn.p)));
-        ctx.fillStyle = 'rgb(' + wn.col + ')'; ctx.fillRect(ox + wn.x, oy + wn.y, wn.w, wn.h);
+        ctx.globalAlpha = 1;
       }
-      if (ly.l.beacons) for (var b = 0; b < ly.l.beacons.length; b++) {
-        var bc = ly.l.beacons[b], on = reduce ? .6 : Math.max(0, Math.sin(now * 2.2 + bc.p));
-        if (on <= 0) continue;
-        ctx.globalAlpha = on * .9; ctx.fillStyle = '#ff6b86';
-        ctx.beginPath(); ctx.arc(ox + bc.x, oy + bc.y, 1.6, 0, 6.28); ctx.fill();
-        ctx.globalAlpha = on * .25; ctx.beginPath(); ctx.arc(ox + bc.x, oy + bc.y, 5, 0, 6.28); ctx.fill();
+      moon.glow.style.opacity = Math.max(0, 1 + Math.sin(now * .5) * .165).toFixed(3); // the glow breathes
+      // clouds: long thin streaks lit from below by the city, drifting in front of the moon
+      cloudCtx.clearRect(0, 0, W, H);
+      for (var c = 0; c < clouds.length; c++) {
+        var k = clouds[c]; k.x += k.v * pf; if (k.x - k.w / 2 > W) k.x = -k.w / 2;
+        var cg = cloudCtx.createLinearGradient(0, k.y - k.h, 0, k.y + k.h);
+        if (light) { cg.addColorStop(0, 'rgba(255,255,255,0)'); cg.addColorStop(.45, 'rgba(255,255,255,.95)'); cg.addColorStop(1, 'rgba(170,190,230,.6)'); }
+        else { cg.addColorStop(0, 'rgba(58,44,104,0)'); cg.addColorStop(.5, 'rgba(58,44,104,.55)'); cg.addColorStop(1, 'rgba(245,174,202,.18)'); }
+        cloudCtx.fillStyle = cg; cloudCtx.beginPath(); cloudCtx.ellipse(k.x, k.y, k.w / 2, k.h, 0, 0, 6.28); cloudCtx.fill();
       }
-      ctx.globalAlpha = 1;
+      // petals and the odd shooting star, in front of the city
+      frontCtx.clearRect(0, 0, W, H);
+      frontCtx.fillStyle = light ? '#ec8db3' : '#f5aeca';
+      for (var j = 0; j < petals.length; j++) {
+        var p = petals[j];
+        p.w += .012 * pf; p.y += p.vy * pf; p.x += (p.vx + Math.sin(p.w) * .35) * pf; p.r += p.vr * pf;
+        if (p.y > H + 10 || p.x > W + 10) petals[j] = p = petal(false);
+        frontCtx.save(); frontCtx.translate(p.x, p.y); frontCtx.rotate(p.r); frontCtx.globalAlpha = p.a;
+        frontCtx.beginPath(); frontCtx.ellipse(0, 0, p.s, p.s * .55, 0, 0, 6.28); frontCtx.fill(); frontCtx.restore();
+      }
+      if (!light) {
+        if (!introShot && since > 1.6) { introShot = true; shoot = { x: W * .78, y: H * .07, l: 0 }; }
+        if (!shoot && Math.random() < .0015 * pf) shoot = { x: Math.random() * W * .6 + W * .3, y: Math.random() * H * .25, l: 0 };
+        if (shoot) {
+          shoot.l += pf;
+          var len = 90, sq = shoot.l * 9, sg = frontCtx.createLinearGradient(shoot.x - sq, shoot.y + sq * .45, shoot.x - sq + len, shoot.y + sq * .45 - len * .45);
+          sg.addColorStop(0, 'rgba(246,236,210,.9)'); sg.addColorStop(1, 'rgba(246,236,210,0)');
+          frontCtx.globalAlpha = Math.max(0, 1 - shoot.l / 40); frontCtx.strokeStyle = sg; frontCtx.lineWidth = 1.4;
+          frontCtx.beginPath(); frontCtx.moveTo(shoot.x - sq, shoot.y + sq * .45); frontCtx.lineTo(shoot.x - sq + len, shoot.y + sq * .45 - len * .45); frontCtx.stroke();
+          if (shoot.l > 40) shoot = null;
+        }
+      }
+      frontCtx.globalAlpha = 1;
     }
-    // haze at street level so text above stays readable
-    var hz = ctx.createLinearGradient(0, H * .7, 0, H);
-    var hc = light ? '228,236,247' : '11,10,22';
-    hz.addColorStop(0, 'rgba(' + hc + ',0)'); hz.addColorStop(1, 'rgba(' + hc + ',.55)');
-    ctx.fillStyle = hz; ctx.fillRect(0, H * .7, W, H * .3);
-    // petals
-    ctx.fillStyle = light ? '#ec8db3' : '#f5aeca';
-    for (var j = 0; j < petals.length; j++) {
-      var p = petals[j];
-      if (!reduce) { p.w += .012 * f; p.y += p.vy * f; p.x += (p.vx + Math.sin(p.w) * .35) * f; p.r += p.vr * f; }
-      if (p.y > H + 10 || p.x > W + 10) petals[j] = p = petal(false);
-      ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.r); ctx.globalAlpha = p.a;
-      ctx.beginPath(); ctx.ellipse(0, 0, p.s, p.s * .55, 0, 0, 6.28); ctx.fill(); ctx.restore();
-    }
-    // the odd shooting star (night only)
-    if (!reduce && !light) {
-      if (!introShot && since > 1.6) { introShot = true; shoot = { x: W * .78, y: H * .07, l: 0 }; }
-      if (!shoot && Math.random() < .0015 * f) shoot = { x: Math.random() * W * .6 + W * .3, y: Math.random() * H * .25, l: 0 };
-      if (shoot) {
-        shoot.l += f;
-        var len = 90, sq = shoot.l * 9, sg = ctx.createLinearGradient(shoot.x - sq, shoot.y + sq * .45, shoot.x - sq + len, shoot.y + sq * .45 - len * .45);
-        sg.addColorStop(0, 'rgba(246,236,210,.9)'); sg.addColorStop(1, 'rgba(246,236,210,0)');
-        ctx.globalAlpha = Math.max(0, 1 - shoot.l / 40); ctx.strokeStyle = sg; ctx.lineWidth = 1.4;
-        ctx.beginPath(); ctx.moveTo(shoot.x - sq, shoot.y + sq * .45); ctx.lineTo(shoot.x - sq + len, shoot.y + sq * .45 - len * .45); ctx.stroke();
-        if (shoot.l > 40) shoot = null;
+
+    // 3. windows flicker and rooftop beacons blink, ~20 times a second, on each layer's thin overlay
+    if (!n || n - lastLights >= 48) {
+      var lf = lastLights && n ? Math.min(6, (n - lastLights) / 1000 * 60) : 1; lastLights = n || 0;
+      for (var Q = 0; Q < layers.length; Q++) {
+        var lay = layers[Q].l, lg = lay.lights && lay.lights.g;
+        if (!lg) continue;
+        lg.clearRect(0, 0, lay.w, lay.h);
+        for (var q = 0; q < lay.live.length; q++) {
+          var wn = lay.live[q];
+          wn.p += wn.s * lf;
+          if (wn.off > 0) wn.off -= lf; else if (Math.random() < .0006 * lf) wn.off = 120 + Math.random() * 400;
+          if (wn.off > 0) continue;
+          lg.globalAlpha = wn.a * (.45 + .55 * (.5 + .5 * Math.sin(wn.p)));
+          lg.fillStyle = 'rgb(' + wn.col + ')'; lg.fillRect(wn.x, wn.y, wn.w, wn.h);
+        }
+        for (var bI = 0; bI < lay.beacons.length; bI++) {
+          var bc = lay.beacons[bI], on = Math.max(0, Math.sin(now * 2.2 + bc.p));
+          if (on <= 0) continue;
+          lg.globalAlpha = on * .9; lg.fillStyle = '#ff6b86';
+          lg.beginPath(); lg.arc(bc.x, bc.y, 1.6, 0, 6.28); lg.fill();
+          lg.globalAlpha = on * .25; lg.beginPath(); lg.arc(bc.x, bc.y, 5, 0, 6.28); lg.fill();
+        }
+        lg.globalAlpha = 1;
       }
     }
-    ctx.globalAlpha = 1;
   }
-  function safeDraw() { try { draw(); } catch (e) { /* the background is decoration: skip this frame */ } }
-  // While the sky is moving (scroll spring, opening, shooting star) it redraws on every screen refresh, so
-  // on a 144 or 240 Hz screen it keeps pace with the page instead of lagging behind it. When everything is
-  // still, the twinkle only needs ~60 redraws a second.
-  var lastFrame = 0, skyBusy = true;
-  function loop(n) { if (!n || skyBusy || n - lastFrame >= 15.5) { lastFrame = n || 0; safeDraw(); } requestAnimationFrame(loop); }
+  function safeDraw(n) { try { frame(n); } catch (e) { /* the background is decoration: skip this frame */ } }
+  function loop(n) { safeDraw(n); requestAnimationFrame(loop); }
   size();
   for (var i = 0; i < (W < 600 ? 9 : 18); i++) petals.push(petal(true));
-  if (reduce) { safeDraw(); addEventListener('scroll', safeDraw, { passive: true }); } else loop();
-  var rt; addEventListener('resize', function () { clearTimeout(rt); rt = setTimeout(function () { size(); if (reduce) safeDraw(); }, 150); });
+  loop();
+  var rt; addEventListener('resize', function () { clearTimeout(rt); rt = setTimeout(size, 150); });
 
   /* ---------- Dark / light ---------- */
   var themeBtn = document.getElementById('themeBtn');
@@ -895,7 +930,7 @@ html.motion .nav a[aria-current="true"] { background: transparent; }
     themeBtn.innerHTML = l ? MOON : SUN;
     themeBtn.setAttribute('aria-label', label); themeBtn.title = label;
     if (l !== light) size();
-    onScroll(); if (reduce) safeDraw();
+    onScroll();
   }
   themeBtn.addEventListener('click', function () {
     var next = isLight() ? 'dark' : 'light';
