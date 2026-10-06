@@ -112,6 +112,19 @@ p { margin: 0; }
 .sky-el { position: fixed; left: 0; top: 0; pointer-events: none; z-index: 0; will-change: transform; }
 .sky-el > canvas { position: absolute; left: 0; top: 0; display: block; }
 .sky-moon { width: 0; height: 0; }
+.sky-petals { width: 100%; height: 100%; overflow: hidden; will-change: auto; --petal: #f5aeca; }
+:root[data-theme="light"] .sky-petals { --petal: #ec8db3; }
+@media (prefers-color-scheme: light) { :root:not([data-theme="dark"]) .sky-petals { --petal: #ec8db3; } }
+.sky-petals i {
+  position: absolute; top: -20px; left: var(--x); width: var(--s); height: calc(var(--s) * .55); border-radius: 50%;
+  background: var(--petal); opacity: var(--a); will-change: transform; animation: petal-fall var(--t) linear var(--w) infinite;
+}
+@keyframes petal-fall {
+  0% { transform: translate3d(0, 0, 0) rotate(0deg); }
+  33% { transform: translate3d(calc(var(--dx) * .33 + var(--sw)), 34vh, 0) rotate(calc(var(--r) * .33)); }
+  66% { transform: translate3d(calc(var(--dx) * .66 - var(--sw)), 68vh, 0) rotate(calc(var(--r) * .66)); }
+  100% { transform: translate3d(var(--dx), calc(100vh + 40px), 0) rotate(var(--r)); }
+}
 .sky-haze { top: auto; bottom: 0; width: 100%; height: 30%; will-change: auto; background: linear-gradient(rgba(11, 10, 22, 0), rgba(11, 10, 22, .55)); }
 :root[data-theme="light"] .sky-haze { background: linear-gradient(rgba(228, 236, 247, 0), rgba(228, 236, 247, .55)); }
 @media (prefers-color-scheme: light) { :root:not([data-theme="dark"]) .sky-haze { background: linear-gradient(rgba(228, 236, 247, 0), rgba(228, 236, 247, .55)); } }
@@ -613,44 +626,6 @@ html.motion .nav a[aria-current="true"] { background: transparent; }
     ['wheel', 'keydown', 'pointerdown', 'touchstart'].forEach(function (t) { addEventListener(t, skipIntro, { passive: true }); });
   }
 
-  /* ---------- Smooth wheel scrolling: the wheel glides the page instead of jumping ---------- */
-  (function () {
-    if (matchMedia('(pointer: coarse)').matches) return; // touch scrolling already glides
-    var target = scrollY, raf = 0, ours = false;
-    function maxY() { return document.documentElement.scrollHeight - innerHeight; }
-    function canScroll(el, dy) { // let an inner scroll area take the wheel while it still can move that way
-      for (; el && el !== document.body && el !== root; el = el.parentElement) {
-        var oy = getComputedStyle(el).overflowY;
-        if ((oy === 'auto' || oy === 'scroll') && el.scrollHeight > el.clientHeight + 1 &&
-            (dy > 0 ? el.scrollTop + el.clientHeight < el.scrollHeight - 1 : el.scrollTop > 0)) return true;
-      }
-      return false;
-    }
-    var lastStep = 0;
-    function step(n) {
-      // ease toward the target by elapsed time, not per frame, so the glide feels the same at any refresh rate
-      var dt = lastStep && n ? Math.min(.05, (n - lastStep) / 1000) : 1 / 60; lastStep = n || 0;
-      var y = scrollY, next = y + (target - y) * (1 - Math.pow(1 - .16, dt * 60));
-      if (Math.abs(target - next) < .6) next = target;
-      ours = true; scrollTo({ top: next, behavior: 'instant' });
-      raf = next === target ? 0 : requestAnimationFrame(step);
-      if (!raf) lastStep = 0;
-    }
-    addEventListener('wheel', function (e) {
-      if (e.ctrlKey || Math.abs(e.deltaX) > Math.abs(e.deltaY) || canScroll(e.target, e.deltaY)) return;
-      e.preventDefault();
-      var dy = e.deltaY * (e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? innerHeight : 1);
-      if (!raf) target = scrollY;
-      target = Math.max(0, Math.min(maxY(), target + dy));
-      if (!raf) raf = requestAnimationFrame(step);
-    }, { passive: false });
-    // keyboard, scrollbar and anchor-link scrolling stay native: follow them so the next wheel starts from there
-    addEventListener('scroll', function () { if (ours) { ours = false; return; } if (!raf) target = scrollY; }, { passive: true });
-    document.addEventListener('click', function (e) { // a link to a section cancels any glide in progress
-      if (e.target.closest && e.target.closest('a[href^="#"]') && raf) { cancelAnimationFrame(raf); raf = 0; }
-    }, true);
-  })();
-
   function isLight() {
     var th = root.getAttribute('data-theme');
     return th ? th === 'light' : matchMedia('(prefers-color-scheme: light)').matches;
@@ -674,10 +649,11 @@ html.motion .nav a[aria-current="true"] { background: transparent; }
      Built so that scrolling costs almost nothing to draw. The skyline layers, poles and moon are painted once
      into their own canvases and then only slid into place (a transform the graphics card applies without
      repainting), on every screen refresh, so they keep pace with the page even at 240 Hz. Only the small
-     moving details repaint: stars (behind the moon), clouds (in front of it) and petals up to ~60 times a
-     second, and the windows' flicker and rooftop beacons ~20 times a second on a thin overlay per layer. */
+     moving details repaint: stars (behind the moon) and clouds (in front of it) up to ~60 times a second,
+     the windows' flicker and rooftop beacons ~20 times a second on a thin overlay per layer, and the odd
+     shooting star. The petals are CSS animations, which the graphics card runs at the full refresh rate. */
   var cv = document.getElementById('sky'), ctx = cv.getContext('2d'), dusk = document.querySelector('.sky-dusk'), lastDusk = -1;
-  var W, H, dpr = Math.min(devicePixelRatio || 1, 1.5), stars = [], petals = [], clouds = [], shoot = null, layers = [], ts = -1, tv = 0, lastT = 0;
+  var W, H, dpr = Math.min(devicePixelRatio || 1, 1.5), stars = [], clouds = [], shoot = null, layers = [], ts = -1, tv = 0, lastT = 0;
   var PAD = 120; // extra width so layers can slide sideways with scroll
   var light = false, els = [], moon = null, cloudCtx = null, frontCtx = null;
   function rnd(a, b) { return a + Math.random() * (b - a); }
@@ -767,10 +743,10 @@ html.motion .nav a[aria-current="true"] { background: transparent; }
     moon = { R: R, el: wrap, glow: glow.c };
   }
 
-  var lastPos = null, lastPaint = 0, lastPaintT = 0, lastLights = 0, skyBusy = true;
+  var lastPos = null, lastPaint = 0, lastPaintT = 0, lastLights = 0, skyBusy = true, frontDirty = false;
   function size() {
     W = innerWidth; H = innerHeight; cv.width = W * dpr; cv.height = H * dpr; ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    els.forEach(function (e) { e.remove(); }); els = []; layers = []; moon = null;
+    els.forEach(function (e) { e.remove(); }); els = []; layers = []; moon = null; shoot = null; frontDirty = false;
     if (!W || !H) { stars = []; clouds = []; return; } // no size yet: build once the window has one
     stars = []; var n = Math.round(W * H / 7000);
     for (var i = 0; i < n; i++) stars.push({ x: Math.random() * W, y: Math.random() * H * .7, r: Math.random() * 1.1 + .2, p: Math.random() * 6.28, s: .004 + Math.random() * .015 });
@@ -788,16 +764,21 @@ html.motion .nav a[aria-current="true"] { background: transparent; }
       { l: makeWires(), px: 120 }
     ];
     var haze = document.createElement('div'); haze.className = 'sky-el sky-haze';
+    // petals: CSS animations of transform only, so they fall at the screen's full refresh rate with no repaints
+    var pet = document.createElement('div'); pet.className = 'sky-el sky-petals';
+    for (var pi = 0; pi < (small ? 9 : 18); pi++) {
+      var el = document.createElement('i'), dur = (H + 60) / rnd(18, 42); // same 18-42 px/s fall as before, on any screen height
+      el.style.cssText = '--x:' + rnd(-10, 95).toFixed(1) + '%;--s:' + rnd(8, 16).toFixed(1) + 'px;--a:' + rnd(.25, .55).toFixed(2) +
+        ';--t:' + dur.toFixed(1) + 's;--w:' + (-rnd(0, dur)).toFixed(1) + 's;--dx:' + Math.round(rnd(12, 33) * dur) + 'px;--r:' +
+        Math.round(rnd(-1, 1) * dur * 50) + 'deg;--sw:' + rnd(14, 34).toFixed(0) + 'px';
+      pet.appendChild(el);
+    }
     var fr = canvasEl(W, H, 'sky-el'); frontCtx = fr.g;
-    // stacking order, back to front: stars (#sky), moon, clouds, skyline layers, poles, haze, petals
-    els = [moon.el, cl.c].concat(layers.map(function (ly) { return ly.l.el; }), [haze, fr.c]);
+    // stacking order, back to front: stars (#sky), moon, clouds, skyline layers, poles, haze, petals, shooting star
+    els = [moon.el, cl.c].concat(layers.map(function (ly) { return ly.l.el; }), [haze, pet, fr.c]);
     var after = cv;
     els.forEach(function (e) { after.after(e); after = e; });
     lastPos = null; lastPaint = 0; lastLights = 0;
-  }
-  function petal(any) {
-    return { x: Math.random() * W, y: any ? Math.random() * H : -10, s: 4 + Math.random() * 4, vy: .3 + Math.random() * .4, vx: .2 + Math.random() * .35,
-      r: Math.random() * 6.28, vr: (Math.random() - .5) * .03, a: .25 + Math.random() * .3, w: Math.random() * 6.28 };
   }
   // opening: as the title card lifts, the moon rises into place, the skyline rises layer by layer from the
   // back, the stars fade in, and one shooting star crosses the sky
@@ -863,29 +844,24 @@ html.motion .nav a[aria-current="true"] { background: transparent; }
         else { cg.addColorStop(0, 'rgba(58,44,104,0)'); cg.addColorStop(.5, 'rgba(58,44,104,.55)'); cg.addColorStop(1, 'rgba(245,174,202,.18)'); }
         cloudCtx.fillStyle = cg; cloudCtx.beginPath(); cloudCtx.ellipse(k.x, k.y, k.w / 2, k.h, 0, 0, 6.28); cloudCtx.fill();
       }
-      // petals and the odd shooting star, in front of the city
-      frontCtx.clearRect(0, 0, W, H);
-      frontCtx.fillStyle = light ? '#ec8db3' : '#f5aeca';
-      for (var j = 0; j < petals.length; j++) {
-        var p = petals[j];
-        p.w += .012 * pf; p.y += p.vy * pf; p.x += (p.vx + Math.sin(p.w) * .35) * pf; p.r += p.vr * pf;
-        if (p.y > H + 10 || p.x > W + 10) petals[j] = p = petal(false);
-        frontCtx.save(); frontCtx.translate(p.x, p.y); frontCtx.rotate(p.r); frontCtx.globalAlpha = p.a;
-        frontCtx.beginPath(); frontCtx.ellipse(0, 0, p.s, p.s * .55, 0, 0, 6.28); frontCtx.fill(); frontCtx.restore();
-      }
+      // the odd shooting star (night only), on the front canvas: painted only while one is crossing
       if (!light) {
         if (!introShot && since > 1.6) { introShot = true; shoot = { x: W * .78, y: H * .07, l: 0 }; }
         if (!shoot && Math.random() < .0015 * pf) shoot = { x: Math.random() * W * .6 + W * .3, y: Math.random() * H * .25, l: 0 };
+      }
+      if (shoot || frontDirty) {
+        frontCtx.clearRect(0, 0, W, H); frontDirty = false;
         if (shoot) {
           shoot.l += pf;
           var len = 90, sq = shoot.l * 9, sg = frontCtx.createLinearGradient(shoot.x - sq, shoot.y + sq * .45, shoot.x - sq + len, shoot.y + sq * .45 - len * .45);
           sg.addColorStop(0, 'rgba(246,236,210,.9)'); sg.addColorStop(1, 'rgba(246,236,210,0)');
           frontCtx.globalAlpha = Math.max(0, 1 - shoot.l / 40); frontCtx.strokeStyle = sg; frontCtx.lineWidth = 1.4;
           frontCtx.beginPath(); frontCtx.moveTo(shoot.x - sq, shoot.y + sq * .45); frontCtx.lineTo(shoot.x - sq + len, shoot.y + sq * .45 - len * .45); frontCtx.stroke();
+          frontCtx.globalAlpha = 1;
+          frontDirty = true; // clear once more after it's gone
           if (shoot.l > 40) shoot = null;
         }
       }
-      frontCtx.globalAlpha = 1;
     }
 
     // 3. windows flicker and rooftop beacons blink, ~20 times a second, on each layer's thin overlay
@@ -917,7 +893,6 @@ html.motion .nav a[aria-current="true"] { background: transparent; }
   function safeDraw(n) { try { frame(n); } catch (e) { /* the background is decoration: skip this frame */ } }
   function loop(n) { safeDraw(n); requestAnimationFrame(loop); }
   size();
-  for (var i = 0; i < (W < 600 ? 9 : 18); i++) petals.push(petal(true));
   loop();
   var rt; addEventListener('resize', function () { clearTimeout(rt); rt = setTimeout(size, 150); });
 
