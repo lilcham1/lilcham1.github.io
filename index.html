@@ -5,6 +5,19 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>lilxcham | Vibe coder & Discord community manager</title>
 <script>try { var th = localStorage.getItem('lilcham-theme'); if (th) document.documentElement.setAttribute('data-theme', th); } catch (e) {}
+// A lighter version (html.lite) for browsers that draw without the graphics card (hardware acceleration off),
+// where the full animated sky can't keep up: the sky is painted once and stays still, and live blurs are left
+// out. Add ?lite=1 or ?lite=0 to the address to force either version.
+try {
+  var liteQ = /[?&]lite=([01])/.exec(location.search), lite = liteQ ? liteQ[1] === '1' : (function () {
+    var c = document.createElement('canvas'), gl = c.getContext('webgl') || c.getContext('experimental-webgl');
+    if (!gl) return true; // no WebGL at all almost always means no graphics acceleration
+    var info = gl.getExtension('WEBGL_debug_renderer_info'), r = info ? String(gl.getParameter(info.UNMASKED_RENDERER_WEBGL)) : '';
+    var lose = gl.getExtension('WEBGL_lose_context'); if (lose) lose.loseContext();
+    return /swiftshader|basic render|llvmpipe|softpipe|software/i.test(r);
+  })();
+  if (lite) document.documentElement.classList.add('lite');
+} catch (e) {}
 // Animations are always on, whatever the device's reduced-motion setting (the owner's choice). Entrances
 // start hidden, so only switch them on when the reveal script can run; if it never reports in, show
 // everything rather than leave parts of the page invisible.
@@ -406,6 +419,13 @@ html.intro-skip .intro { display: none; }
 html.motion .bar { animation: bar-in .6s cubic-bezier(.2, .8, .2, 1) 1s both; }
 html.intro-skip .bar { animation: none; }
 
+/* lighter version (html.lite, see the head script): no live blurs, no blur-ins or light sweeps */
+html.lite .bar { backdrop-filter: none; -webkit-backdrop-filter: none; background: color-mix(in srgb, var(--bg) 94%, transparent); }
+html.lite .vn { backdrop-filter: none; -webkit-backdrop-filter: none; }
+html.lite.motion .sec-head h2 { filter: none; }
+html.lite .inv .item::after { display: none; }
+html.lite .sky-el { will-change: auto; }
+
 /* nav: one highlight that slides to the section being read */
 .nav { position: relative; }
 .nav a { position: relative; z-index: 1; }
@@ -587,7 +607,7 @@ html.motion .nav a[aria-current="true"] { background: transparent; }
 <script>
 (function () {
   var root = document.documentElement;
-  var motion = root.classList.contains('motion');
+  var motion = root.classList.contains('motion'), lite = root.classList.contains('lite');
 
   /* ---------- Entrances: each part plays its scene-in whenever it scrolls into view, either way ---------- */
   root.setAttribute('data-reveal-ready', '');
@@ -766,7 +786,7 @@ html.motion .nav a[aria-current="true"] { background: transparent; }
     var haze = document.createElement('div'); haze.className = 'sky-el sky-haze';
     // petals: CSS animations of transform only, so they fall at the screen's full refresh rate with no repaints
     var pet = document.createElement('div'); pet.className = 'sky-el sky-petals';
-    for (var pi = 0; pi < (small ? 9 : 18); pi++) {
+    for (var pi = 0; pi < (lite ? 0 : small ? 9 : 18); pi++) { // no petals in the lighter version
       var el = document.createElement('i'), dur = (H + 60) / rnd(18, 42); // same 18-42 px/s fall as before, on any screen height
       el.style.cssText = '--x:' + rnd(-10, 95).toFixed(1) + '%;--s:' + rnd(8, 16).toFixed(1) + 'px;--a:' + rnd(.25, .55).toFixed(2) +
         ';--t:' + dur.toFixed(1) + 's;--w:' + (-rnd(0, dur)).toFixed(1) + 's;--dx:' + Math.round(rnd(12, 33) * dur) + 'px;--r:' +
@@ -779,10 +799,11 @@ html.motion .nav a[aria-current="true"] { background: transparent; }
     var after = cv;
     els.forEach(function (e) { after.after(e); after = e; });
     lastPos = null; lastPaint = 0; lastLights = 0;
+    if (lite) requestAnimationFrame(function () { safeDraw(); }); // lighter version: paint once, at rest
   }
   // opening: as the title card lifts, the moon rises into place, the skyline rises layer by layer from the
   // back, the stars fade in, and one shooting star crosses the sky
-  var introT0 = motion ? performance.now() : -1e9, introShot = !motion;
+  var introT0 = motion && !lite ? performance.now() : -1e9, introShot = !motion || lite; // the lighter version starts at rest
   function easeOut(x) { x = Math.min(1, Math.max(0, x)); return 1 - Math.pow(1 - x, 3); }
 
   function frame(n) {
@@ -845,7 +866,7 @@ html.motion .nav a[aria-current="true"] { background: transparent; }
         cloudCtx.fillStyle = cg; cloudCtx.beginPath(); cloudCtx.ellipse(k.x, k.y, k.w / 2, k.h, 0, 0, 6.28); cloudCtx.fill();
       }
       // the odd shooting star (night only), on the front canvas: painted only while one is crossing
-      if (!light) {
+      if (!light && !lite) { // no shooting stars in the still, lighter version
         if (!introShot && since > 1.6) { introShot = true; shoot = { x: W * .78, y: H * .07, l: 0 }; }
         if (!shoot && Math.random() < .0015 * pf) shoot = { x: Math.random() * W * .6 + W * .3, y: Math.random() * H * .25, l: 0 };
       }
@@ -891,9 +912,29 @@ html.motion .nav a[aria-current="true"] { background: transparent; }
     }
   }
   function safeDraw(n) { try { frame(n); } catch (e) { /* the background is decoration: skip this frame */ } }
-  function loop(n) { safeDraw(n); requestAnimationFrame(loop); }
+  function loop(n) { if (lite) return; safeDraw(n); requestAnimationFrame(loop); }
+  // switch to the lighter version on the fly if frames come in far too slowly (the browser can't keep up)
+  function goLite() {
+    if (lite) return;
+    lite = true; root.classList.add('lite'); introT0 = -1e9; introShot = true;
+    size();
+  }
   size();
-  loop();
+  if (!lite) {
+    loop();
+    if (!/[?&]lite=0/.test(location.search)) (function () { // watch the frame rate during the opening, when the most is moving
+      var gaps = [], t0 = performance.now(), prev = 0;
+      function probe(n) {
+        if (lite) return;
+        if (prev && n - t0 > 1200) gaps.push(n - prev);
+        prev = n;
+        if (n - t0 < 3200) { requestAnimationFrame(probe); return; }
+        gaps.sort(function (a, b) { return a - b; });
+        if (gaps.length > 5 && gaps[gaps.length >> 1] > 26) goLite(); // a typical frame took over ~26ms: under ~38 fps
+      }
+      requestAnimationFrame(probe);
+    })();
+  }
   var rt; addEventListener('resize', function () { clearTimeout(rt); rt = setTimeout(size, 150); });
 
   /* ---------- Dark / light ---------- */
