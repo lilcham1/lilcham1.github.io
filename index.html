@@ -620,11 +620,15 @@ html.motion .nav a[aria-current="true"] { background: transparent; }
       }
       return false;
     }
-    function step() {
-      var y = scrollY, next = y + (target - y) * .085;
+    var lastStep = 0;
+    function step(n) {
+      // ease toward the target by elapsed time, not per frame, so the glide feels the same at any refresh rate
+      var dt = lastStep && n ? Math.min(.05, (n - lastStep) / 1000) : 1 / 60; lastStep = n || 0;
+      var y = scrollY, next = y + (target - y) * (1 - Math.pow(1 - .085, dt * 60));
       if (Math.abs(target - next) < .6) next = target;
       ours = true; scrollTo({ top: next, behavior: 'instant' });
       raf = next === target ? 0 : requestAnimationFrame(step);
+      if (!raf) lastStep = 0;
     }
     addEventListener('wheel', function (e) {
       if (e.ctrlKey || Math.abs(e.deltaX) > Math.abs(e.deltaY) || canScroll(e.target, e.deltaY)) return;
@@ -772,6 +776,7 @@ html.motion .nav a[aria-current="true"] { background: transparent; }
   function draw() {
     if (!W || !H) { if (innerWidth && innerHeight) size(); else return; }
     var now = performance.now() / 1000, dt = Math.min(.1, lastT ? now - lastT : .016); lastT = now;
+    var f = dt * 60; // per-frame steps below are scaled by this, so motion speed doesn't depend on the screen's refresh rate
     var since = (performance.now() - introT0) / 1000, ip = easeOut((since - .7) / 2.2);
     var max = Math.max(1, document.documentElement.scrollHeight - innerHeight);
     var target = Math.min(1, Math.max(0, scrollY / max));
@@ -789,6 +794,7 @@ html.motion .nav a[aria-current="true"] { background: transparent; }
     }
     // the dusk tint fades out with the same spring; written to its own element, and only when it
     // visibly changes, so the rest of the page isn't re-styled every frame
+    skyBusy = tv !== 0 || since < 3.4 || !!shoot;
     var dop = Math.round((1 - ts) * 500) / 500;
     if (dop !== lastDusk) { lastDusk = dop; dusk.style.opacity = dop; }
     var t = ts;
@@ -796,7 +802,7 @@ html.motion .nav a[aria-current="true"] { background: transparent; }
     // stars (night only)
     ctx.fillStyle = '#efebf9';
     if (!light) for (var i = 0; i < stars.length; i++) {
-      var s = stars[i]; if (!reduce) s.p += s.s;
+      var s = stars[i]; if (!reduce) s.p += s.s * f;
       ctx.globalAlpha = Math.min(1, .45 + Math.sin(s.p) * .3 + t * .2) * ip;
       ctx.beginPath(); ctx.arc(s.x, s.y, s.r, 0, 6.28); ctx.fill();
     }
@@ -809,7 +815,7 @@ html.motion .nav a[aria-current="true"] { background: transparent; }
     ctx.drawImage(moon.body, mx - moon.half, my - moon.half, moon.half * 2, moon.half * 2);
     // clouds: long thin streaks lit from below by the city
     for (var c = 0; c < clouds.length; c++) {
-      var k = clouds[c]; if (!reduce) { k.x += k.v; if (k.x - k.w / 2 > W) k.x = -k.w / 2; }
+      var k = clouds[c]; if (!reduce) { k.x += k.v * f; if (k.x - k.w / 2 > W) k.x = -k.w / 2; }
       var cg = ctx.createLinearGradient(0, k.y - k.h, 0, k.y + k.h);
       if (light) { cg.addColorStop(0, 'rgba(255,255,255,0)'); cg.addColorStop(.45, 'rgba(255,255,255,.95)'); cg.addColorStop(1, 'rgba(170,190,230,.6)'); }
       else { cg.addColorStop(0, 'rgba(58,44,104,0)'); cg.addColorStop(.5, 'rgba(58,44,104,.55)'); cg.addColorStop(1, 'rgba(245,174,202,.18)'); }
@@ -824,8 +830,8 @@ html.motion .nav a[aria-current="true"] { background: transparent; }
       if (ly.l.live) for (var q = 0; q < ly.l.live.length; q++) {
         var wn = ly.l.live[q];
         if (!reduce) {
-          wn.p += wn.s;
-          if (wn.off > 0) wn.off--; else if (Math.random() < .0006) wn.off = 120 + Math.random() * 400;
+          wn.p += wn.s * f;
+          if (wn.off > 0) wn.off -= f; else if (Math.random() < .0006 * f) wn.off = 120 + Math.random() * 400;
         }
         if (wn.off > 0) continue;
         ctx.globalAlpha = wn.a * (.45 + .55 * (.5 + .5 * Math.sin(wn.p)));
@@ -849,7 +855,7 @@ html.motion .nav a[aria-current="true"] { background: transparent; }
     ctx.fillStyle = light ? '#ec8db3' : '#f5aeca';
     for (var j = 0; j < petals.length; j++) {
       var p = petals[j];
-      if (!reduce) { p.w += .012; p.y += p.vy; p.x += p.vx + Math.sin(p.w) * .35; p.r += p.vr; }
+      if (!reduce) { p.w += .012 * f; p.y += p.vy * f; p.x += (p.vx + Math.sin(p.w) * .35) * f; p.r += p.vr * f; }
       if (p.y > H + 10 || p.x > W + 10) petals[j] = p = petal(false);
       ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.r); ctx.globalAlpha = p.a;
       ctx.beginPath(); ctx.ellipse(0, 0, p.s, p.s * .55, 0, 0, 6.28); ctx.fill(); ctx.restore();
@@ -857,9 +863,9 @@ html.motion .nav a[aria-current="true"] { background: transparent; }
     // the odd shooting star (night only)
     if (!reduce && !light) {
       if (!introShot && since > 1.6) { introShot = true; shoot = { x: W * .78, y: H * .07, l: 0 }; }
-      if (!shoot && Math.random() < .0015) shoot = { x: Math.random() * W * .6 + W * .3, y: Math.random() * H * .25, l: 0 };
+      if (!shoot && Math.random() < .0015 * f) shoot = { x: Math.random() * W * .6 + W * .3, y: Math.random() * H * .25, l: 0 };
       if (shoot) {
-        shoot.l += 1;
+        shoot.l += f;
         var len = 90, sq = shoot.l * 9, sg = ctx.createLinearGradient(shoot.x - sq, shoot.y + sq * .45, shoot.x - sq + len, shoot.y + sq * .45 - len * .45);
         sg.addColorStop(0, 'rgba(246,236,210,.9)'); sg.addColorStop(1, 'rgba(246,236,210,0)');
         ctx.globalAlpha = Math.max(0, 1 - shoot.l / 40); ctx.strokeStyle = sg; ctx.lineWidth = 1.4;
@@ -870,8 +876,11 @@ html.motion .nav a[aria-current="true"] { background: transparent; }
     ctx.globalAlpha = 1;
   }
   function safeDraw() { try { draw(); } catch (e) { /* the background is decoration: skip this frame */ } }
-  var lastFrame = 0; // draw at most ~60 times a second, even on 120/144 Hz screens
-  function loop(n) { if (!n || n - lastFrame >= 15.5) { lastFrame = n || 0; safeDraw(); } requestAnimationFrame(loop); }
+  // While the sky is moving (scroll spring, opening, shooting star) it redraws on every screen refresh, so
+  // on a 144 or 240 Hz screen it keeps pace with the page instead of lagging behind it. When everything is
+  // still, the twinkle only needs ~60 redraws a second.
+  var lastFrame = 0, skyBusy = true;
+  function loop(n) { if (!n || skyBusy || n - lastFrame >= 15.5) { lastFrame = n || 0; safeDraw(); } requestAnimationFrame(loop); }
   size();
   for (var i = 0; i < (W < 600 ? 9 : 18); i++) petals.push(petal(true));
   if (reduce) { safeDraw(); addEventListener('scroll', safeDraw, { passive: true }); } else loop();
