@@ -15,83 +15,93 @@
     .catch(function () {});
 })();
 
-// Motion engine shared by the project pages. It only marks things; each page's motion.css decides how
-// they move, so the same engine gives every page its own style.
+// Motion shared by the project pages. It only marks things; landing.css decides how they move.
 //  - Revealed parts get .in as they scroll into view and lose it once they have left, so they play again in
-//    both scroll directions. Parts arriving together are staggered through --d, counted per parent, with the
-//    step taken from the page's --stagger (seconds). --dir is -1 for parts that left through the top, so
-//    pages can bring them back down into place when scrolling up.
-//  - The hero itself is revealed too, so its load animation replays when you scroll back to the top.
-//  - Cards get --mx / --my, the pointer position, for cursor-following light.
-//  - [data-scan] strips mark each .chip with .caught while it passes the strip's centre line.
+//    both scroll directions. Parts arriving together are staggered through --d, counted per parent.
+//    --dir is -1 for parts that left through the top, so they come back down into place when scrolling up.
+//  - Reveals start once the opening sting has lifted (the page's --intro, in seconds); any wheel, key or
+//    tap skips it.
+//  - The nav marks the section being read, with one gold block sliding between the links.
 (function () {
   var root = document.documentElement;
   root.setAttribute('data-reveal-ready', '');
-  if (!root.classList.contains('motion')) return;
+  var motion = root.classList.contains('motion');
 
-  var REVEAL = '.hero, section h2, section .sub, .card, .ticks li, .steps li, details, .note, .gallery img, .shot, .demo, .final .wrap > *, [data-reveal]';
-  var step = parseFloat(getComputedStyle(document.body).getPropertyValue('--stagger')) || .08;
-  var io = new IntersectionObserver(function (entries) {
-    var groups = [], counts = [];
-    entries.forEach(function (e) {
-      var el = e.target;
-      if (!e.isIntersecting) {
-        el.classList.remove('in');
-        el.style.setProperty('--dir', e.boundingClientRect.top < 0 ? -1 : 1);
-        return;
-      }
-      if (e.intersectionRatio < .12 || el.classList.contains('in')) return;
-      var g = groups.indexOf(el.parentNode);
-      if (g < 0) { groups.push(el.parentNode); counts.push(0); g = groups.length - 1; }
-      el.style.setProperty('--d', (counts[g]++ * step).toFixed(2) + 's');
-      el.classList.add('in');
-    });
-  }, { rootMargin: '0px 0px -8% 0px', threshold: [0, .12] });
-  // reveals start as the page's opening veil lifts (its --intro, in seconds), or at once if it is skipped
-  var revealing = false;
-  function startReveals() {
-    if (revealing) return; revealing = true;
-    document.querySelectorAll(REVEAL).forEach(function (el) {
-      // inside the hero only the hero itself and its pictures are revealed; its text plays with the hero
-      if (el.matches('.hero, .shot, .gallery img, .demo') || !el.closest('.hero')) io.observe(el);
-    });
-  }
-  var intro = document.querySelector('.intro') ? parseFloat(getComputedStyle(document.body).getPropertyValue('--intro')) || 0 : 0;
-  var introTimer = setTimeout(startReveals, intro * 1000);
-  var INPUT = ['wheel', 'keydown', 'pointerdown', 'touchstart'];
-  function skipIntro() {
-    INPUT.forEach(function (t) { removeEventListener(t, skipIntro); });
-    if (revealing) return;
-    root.classList.add('intro-skip'); clearTimeout(introTimer); startReveals();
-  }
-  if (intro) INPUT.forEach(function (t) { addEventListener(t, skipIntro, { passive: true }); });
-
-  document.querySelectorAll('.card').forEach(function (card) {
-    card.addEventListener('pointermove', function (e) {
-      var r = card.getBoundingClientRect();
-      card.style.setProperty('--mx', (e.clientX - r.left) + 'px');
-      card.style.setProperty('--my', (e.clientY - r.top) + 'px');
-    });
-  });
-
-  document.querySelectorAll('[data-scan]').forEach(function (strip) {
-    var chips = strip.querySelectorAll('.chip'), running = false;
-    function tick() {
-      if (!running) return;
-      var r = strip.getBoundingClientRect(), x = r.left + r.width / 2;
-      chips.forEach(function (c) {
-        var b = c.getBoundingClientRect();
-        if (b.left <= x && b.right >= x && !c.classList.contains('caught')) {
-          c.classList.add('caught');
-          setTimeout(function () { c.classList.remove('caught'); }, 1400);
+  if (motion) {
+    var REVEAL = '.hero, .sec-head, section > .wrap > .sub, .card, ul.ticks li, ol.steps li, details, .note, .marquee, .final-panel';
+    var io = new IntersectionObserver(function (entries) {
+      var groups = [], counts = [];
+      entries.forEach(function (e) {
+        var el = e.target;
+        if (!e.isIntersecting) {
+          el.classList.remove('in');
+          el.style.setProperty('--dir', e.boundingClientRect.top < 0 ? -1 : 1);
+          return;
         }
+        if (e.intersectionRatio < .12 || el.classList.contains('in')) return;
+        var g = groups.indexOf(el.parentNode);
+        if (g < 0) { groups.push(el.parentNode); counts.push(0); g = groups.length - 1; }
+        el.style.setProperty('--d', (counts[g]++ * .08).toFixed(2) + 's');
+        el.classList.add('in');
       });
-      requestAnimationFrame(tick);
+    }, { rootMargin: '0px 0px -6% 0px', threshold: [0, .12] });
+    var revealing = false;
+    function startReveals() {
+      if (revealing) return; revealing = true;
+      document.querySelectorAll(REVEAL).forEach(function (el) { io.observe(el); });
     }
-    new IntersectionObserver(function (es) {
-      var was = running; running = es[0].isIntersecting;
-      if (running && !was) requestAnimationFrame(tick); // only watch the strip while it is on screen
-    }).observe(strip);
-  });
-})();
+    var intro = document.querySelector('.sting') ? parseFloat(getComputedStyle(document.body).getPropertyValue('--intro')) || .85 : 0;
+    var introTimer = setTimeout(startReveals, intro * 1000);
+    var INPUT = ['wheel', 'keydown', 'pointerdown', 'touchstart'];
+    function skipIntro() {
+      INPUT.forEach(function (t) { removeEventListener(t, skipIntro); });
+      if (revealing) return;
+      root.classList.add('intro-skip'); clearTimeout(introTimer); startReveals();
+    }
+    if (intro) INPUT.forEach(function (t) { addEventListener(t, skipIntro, { passive: true }); });
 
+    // the scanner's line sweeps the list it sits on, whatever its height
+    document.querySelectorAll('.scan').forEach(function (s) {
+      var list = s.querySelector('ul');
+      function fit() { s.style.setProperty('--scan-h', (list.offsetTop + list.offsetHeight - 2) + 'px'); }
+      fit(); addEventListener('resize', fit);
+    });
+  }
+
+  /* nav: highlight the section being read */
+  var links = Array.prototype.filter.call(document.querySelectorAll('header nav a'), function (a) { return a.hash && a.getAttribute('href').charAt(0) === '#'; });
+  if (!links.length) return;
+  var sections = links.map(function (a) { return document.getElementById(a.hash.slice(1)); });
+  var nav = links[0].parentNode, ind = null, current = null, queued = false, lockUntil = 0;
+  if (motion) { ind = document.createElement('span'); ind.className = 'nav-ind'; ind.setAttribute('aria-hidden', 'true'); nav.appendChild(ind); }
+  function moveInd() {
+    if (!ind) return;
+    var a = nav.querySelector('a[aria-current="true"]');
+    if (!a || !a.offsetWidth) { ind.style.opacity = '0'; return; }
+    var appearing = ind.style.opacity !== '1';
+    if (appearing) ind.style.transition = 'none'; // first appearance: show it in place, don't slide in from the left
+    ind.style.width = a.offsetWidth + 'px'; ind.style.height = a.offsetHeight + 'px';
+    ind.style.transform = 'translate(' + a.offsetLeft + 'px, ' + a.offsetTop + 'px)';
+    if (appearing) { void ind.offsetWidth; ind.style.transition = ''; }
+    ind.style.opacity = '1';
+  }
+  function mark(id) {
+    links.forEach(function (a) { if (a.hash === '#' + id) a.setAttribute('aria-current', 'true'); else a.removeAttribute('aria-current'); });
+    current = id; moveInd();
+  }
+  function sync() {
+    if (performance.now() < lockUntil) return;
+    var id = '', line = innerHeight * .45;
+    sections.forEach(function (s) { if (s && s.getBoundingClientRect().top <= line) id = s.id; });
+    if (id !== current) mark(id);
+  }
+  addEventListener('scroll', function () {
+    if (performance.now() < lockUntil) { lockUntil = performance.now() + 200; return; }
+    if (queued) return; queued = true;
+    requestAnimationFrame(function () { queued = false; sync(); });
+  }, { passive: true });
+  addEventListener('resize', function () { sync(); moveInd(); });
+  links.forEach(function (a) { a.addEventListener('click', function () { mark(a.hash.slice(1)); lockUntil = performance.now() + 600; }); });
+  sync();
+  if (document.fonts) document.fonts.ready.then(function () { sync(); moveInd(); });
+})();
