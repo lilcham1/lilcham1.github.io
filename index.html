@@ -12,7 +12,7 @@ if (window.IntersectionObserver) {
   document.documentElement.classList.add('motion');
   addEventListener('load', function () { setTimeout(function () { if (!document.documentElement.hasAttribute('data-reveal-ready')) document.documentElement.classList.remove('motion'); }, 800); });
 }</script>
-<meta name="description" content="lilxcham is a vibe coder managing Discord servers for YouTubers since 2018. Projects: TheTracker, Encore for YouTube Music, DesktopGroups, Vimbara and KneeGuard.">
+<meta name="description" content="lilxcham is a vibe coder managing Discord servers for YouTubers since 2018. Projects: TheTracker, Encore for YouTube Music, DesktopGroups, Vimbara, KneeGuard and MeowArcade.">
 <link rel="canonical" href="https://lilxcham.com/">
 <meta name="robots" content="index, follow, max-image-preview:large">
 <meta name="author" content="lilxcham">
@@ -23,7 +23,7 @@ if (window.IntersectionObserver) {
 <meta property="og:site_name" content="lilxcham">
 <meta property="og:url" content="https://lilxcham.com/">
 <meta property="og:title" content="lilxcham | Vibe coder & Discord community manager">
-<meta property="og:description" content="lilxcham is a vibe coder managing Discord servers for YouTubers since 2018. Projects: TheTracker, Encore for YouTube Music, DesktopGroups, Vimbara and KneeGuard.">
+<meta property="og:description" content="lilxcham is a vibe coder managing Discord servers for YouTubers since 2018. Projects: TheTracker, Encore for YouTube Music, DesktopGroups, Vimbara, KneeGuard and MeowArcade.">
 <meta property="og:image" content="https://lilxcham.com/og-image.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
@@ -33,9 +33,9 @@ if (window.IntersectionObserver) {
 <meta name="twitter:site" content="@lilxcham">
 <meta name="twitter:creator" content="@lilxcham">
 <meta name="twitter:title" content="lilxcham | Vibe coder & Discord community manager">
-<meta name="twitter:description" content="lilxcham is a vibe coder managing Discord servers for YouTubers since 2018. Projects: TheTracker, Encore for YouTube Music, DesktopGroups, Vimbara and KneeGuard.">
+<meta name="twitter:description" content="lilxcham is a vibe coder managing Discord servers for YouTubers since 2018. Projects: TheTracker, Encore for YouTube Music, DesktopGroups, Vimbara, KneeGuard and MeowArcade.">
 <meta name="twitter:image" content="https://lilxcham.com/og-image.png">
-<script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"Person","@id":"https://lilxcham.com/#me","name":"lilxcham","alternateName":["lilcham","lilcham1"],"url":"https://lilxcham.com/","image":"https://lilxcham.com/og-image.png","jobTitle":"Discord community manager","description":"Vibe coder who has managed Discord servers for YouTubers since 2018.","knowsAbout":["Discord community management","Discord bots","Video editing","Customer support"],"sameAs":["https://github.com/lilcham1","https://www.youtube.com/@lilxcham","https://www.twitch.tv/lilchamoun","https://x.com/lilxcham"]},{"@type":"WebSite","@id":"https://lilxcham.com/#site","url":"https://lilxcham.com/","name":"lilxcham","publisher":{"@id":"https://lilxcham.com/#me"}},{"@type":"ProfilePage","url":"https://lilxcham.com/","name":"lilxcham | Vibe coder & Discord community manager","mainEntity":{"@id":"https://lilxcham.com/#me"},"dateModified":"2026-10-15"}]}</script>
+<script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"Person","@id":"https://lilxcham.com/#me","name":"lilxcham","alternateName":["lilcham","lilcham1"],"url":"https://lilxcham.com/","image":"https://lilxcham.com/og-image.png","jobTitle":"Discord community manager","description":"Vibe coder who has managed Discord servers for YouTubers since 2018.","knowsAbout":["Discord community management","Discord bots","Video editing","Customer support"],"sameAs":["https://github.com/lilcham1","https://www.youtube.com/@lilxcham","https://www.twitch.tv/lilchamoun","https://x.com/lilxcham"]},{"@type":"WebSite","@id":"https://lilxcham.com/#site","url":"https://lilxcham.com/","name":"lilxcham","publisher":{"@id":"https://lilxcham.com/#me"}},{"@type":"ProfilePage","url":"https://lilxcham.com/","name":"lilxcham | Vibe coder & Discord community manager","mainEntity":{"@id":"https://lilxcham.com/#me"},"dateModified":"2026-10-26"}]}</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anton&family=Barlow:wght@400;500;600;700&family=Barlow+Condensed:wght@600;700&display=swap">
@@ -184,6 +184,11 @@ html.motion .nav a[aria-current="true"]::before { background: var(--panel-2); }
 .strip { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 110px), 1fr)); gap: 6px; margin: 0; padding: 0; list-style: none; }
 .strip li { background: var(--bg); padding: 10px 14px; font: 700 .95rem/1.2 var(--f-label); letter-spacing: .08em; text-transform: uppercase; }
 .links { display: flex; gap: 10px; flex-wrap: wrap; margin-top: auto; }
+.feat.wide { grid-column: 1 / -1; flex-direction: row; border-top-color: var(--a); }
+.feat.wide .shot { width: 56%; aspect-ratio: 1360 / 860; flex: none; }
+.feat.wide .body { justify-content: center; }
+.feat.wide .links { margin-top: 6px; }
+@media (max-width: 900px) { .feat.wide { flex-direction: column; } .feat.wide .shot { width: 100%; } }
 
 .minis { margin: 16px 0 0; padding: 0; list-style: none; display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr)); gap: 16px; }
 .mini { background: var(--panel); border-top: 4px solid var(--a); padding: 22px; display: flex; flex-direction: column; gap: 12px; height: 100%; transition: transform .25s ease; }
@@ -357,9 +362,9 @@ html.motion .badge.pop { animation: pop .5s ease-out; }
           <div class="ctas"><a class="btn gold slant" href="#projects">See the projects</a><a class="btn dark slant" href="#contact">Contact</a></div>
         </div>
         <dl class="stats">
-          <div><dt>Projects</dt><dd data-count="6">6</dd></div>
+          <div><dt>Projects</dt><dd data-count="7">7</dd></div>
           <div><dt>On Discord since</dt><dd data-count="2018" data-from="2010">2018</dd></div>
-          <div><dt>Builds</dt><dd class="words">Windows apps · Discord bot · web app · Roblox</dd></div>
+          <div><dt>Builds</dt><dd class="words">Windows apps · web apps · Discord bot · Roblox</dd></div>
           <div><dt>Now</dt><dd class="words">Customer support at csgogem.com</dd></div>
         </dl>
       </div>
@@ -387,6 +392,15 @@ html.motion .badge.pop { animation: pop .5s ease-out; }
             <p>A tiny Windows app for YouTube Music. Listen along with friends in sync, right from your Discord status.</p>
             <ul class="strip"><li>~4 MB</li><li>Listen along</li><li>GPL-3.0</li></ul>
             <div class="links"><a class="btn accent sm slant" href="https://lilxcham.com/youtube-music-desktop/" target="_blank" rel="noopener" aria-label="Download Encore for YouTube Music">Download</a><a class="btn dark sm slant" href="https://github.com/lilcham1/youtube-music-desktop" target="_blank" rel="noopener" aria-label="Encore for YouTube Music source code on GitHub">Source</a></div>
+          </div>
+        </article>
+        <article class="feat wide cut sweep">
+          <img class="shot" src="img/meowarcade.webp" width="1360" height="860" alt="MeowArcade's home page: the game of the day, hosting a room, and the list of games" loading="lazy" decoding="async">
+          <div class="body">
+            <div class="p-head"><img class="ico" src="data:image/webp;base64,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" alt="" width="52" height="52"><div class="t"><h3>MeowArcade</h3><div class="type">Web app · TypeScript</div></div><span class="badge tag">Live</span></div>
+            <p>Party, board, arcade and puzzle games in your browser. Host a room from your own tab, and friends join from any device with a 4-letter code.</p>
+            <ul class="strip"><li>49 games</li><li>No install</li><li>3 languages</li></ul>
+            <div class="links"><a class="btn accent sm slant" href="https://meowarcade.vercel.app/" target="_blank" rel="noopener" aria-label="Play MeowArcade">Play now</a></div>
           </div>
         </article>
       </div>
